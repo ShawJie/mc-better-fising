@@ -7,7 +7,7 @@ import net.minecraft.entity.projectile.FishingBobberEntity;
  * Callback interface for handling fish catching events.
  * Implementations define specific actions to perform when a fish is caught.
  */
-public interface FishCatchingCallbackAction {
+public interface FishCatchingCallbackAction extends CallbackAction {
 
     /**
      * Process the action when a fish is caught.

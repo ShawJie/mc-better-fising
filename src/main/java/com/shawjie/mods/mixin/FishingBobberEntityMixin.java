@@ -1,12 +1,12 @@
 package com.shawjie.mods.mixin;
 
-import com.shawjie.mods.BetterFishing;
-import com.shawjie.mods.action.FishCatchingCallbackAction;
 import com.shawjie.mods.action.FishCatchingCallbackActionChain;
 import com.shawjie.mods.ticker.PriorityFabricTicker;
+import net.minecraft.entity.data.TrackedData;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.projectile.FishingBobberEntity;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -26,6 +26,9 @@ public class FishingBobberEntityMixin {
 	private static final Integer CLEAR_DEPRECATED_TICK = 20;
 	private static final Set<Integer> processedEventCache = new HashSet<>();
 
+	@Shadow
+	private boolean caughtFish;
+
 	/**
 	 * Injected method that triggers when fishing bobber tracked data changes.
 	 * Executes registered callbacks when a fish is caught.
@@ -34,15 +37,14 @@ public class FishingBobberEntityMixin {
 		method = "onTrackedDataSet(Lnet/minecraft/entity/data/TrackedData;)V",
 		at = @At("TAIL")
 	)
-	private void afterTrackedDataSet(CallbackInfo info) {
+	private void afterTrackedDataSet(TrackedData<?> data, CallbackInfo info) {
 		FishCatchingCallbackActionChain actionChain = FishCatchingCallbackActionChain.getInstance();
 		if (actionChain.callbackChainEmpty()) {
 			return;
 		}
 
 		FishingBobberEntity bobberEntity = ((FishingBobberEntity)((Object)this));
-		FishingBobberEntityFieldMixin entityFieldMixin = (FishingBobberEntityFieldMixin) bobberEntity;
-		if (bobberEntity == null || !entityFieldMixin.getCaughtFish()) {
+		if (bobberEntity == null || !this.caughtFish) {
 			return;
 		}
 

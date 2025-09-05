@@ -1,10 +1,6 @@
 package com.shawjie.mods;
 
-import com.shawjie.mods.action.DropCatchItemAction;
-import com.shawjie.mods.action.FishCatchingCallbackAction;
-import com.shawjie.mods.action.FishCatchingCallbackActionChain;
-import com.shawjie.mods.action.PullUpAndReleaseThenAction;
-import com.shawjie.mods.mixin.FishingBobberEntityMixin;
+import com.shawjie.mods.action.*;
 import com.shawjie.mods.ticker.PriorityFabricTicker;
 import net.fabricmc.api.ModInitializer;
 
@@ -25,7 +21,7 @@ public class BetterFishing implements ModInitializer {
 
 	public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
 
-	private final List<FishCatchingCallbackAction> callbackActionList = new ArrayList<>();
+	private final List<CallbackAction> callbackActionList = new ArrayList<>();
 
 	@Override
 	public void onInitialize() {
@@ -33,16 +29,34 @@ public class BetterFishing implements ModInitializer {
 		// However, some things (like resources) may still be uninitialized.
 		// Proceed with mild caution.
 		LOGGER.info("Ready to registry `{}` for your game", MOD_ID);
+
 		callbackActionList.add(new PullUpAndReleaseThenAction());
-		callbackActionList.add(new DropCatchItemAction());
+		callbackActionList.add(new ThrowCatchItemAction());
 
 		Event<ClientTickEvents.StartTick> startClientTick = ClientTickEvents.START_CLIENT_TICK;
 		startClientTick.register(new PriorityFabricTicker());
 
-		FishCatchingCallbackActionChain callbackActionChain = FishCatchingCallbackActionChain.getInstance();
-		for (FishCatchingCallbackAction action : callbackActionList) {
-			callbackActionChain.registerCallback(action::processAction);
-		}
+		prepareFishCatchingCallback();
+		preparePlayerPickupCallback();
+
 		LOGGER.info("Mod `{}` registry successful, enjoy your fishing time", MOD_ID);
+	}
+
+	private void prepareFishCatchingCallback() {
+		FishCatchingCallbackActionChain callbackActionChain = FishCatchingCallbackActionChain.getInstance();
+		for (CallbackAction action : callbackActionList) {
+			if (action instanceof FishCatchingCallbackAction) {
+				callbackActionChain.registerCallback((FishCatchingCallbackAction) action);
+			}
+		}
+	}
+
+	private void preparePlayerPickupCallback() {
+		PlayerPickupCallbackActionChain callbackActionChain = PlayerPickupCallbackActionChain.getInstance();
+		for (CallbackAction action : callbackActionList) {
+			if (action instanceof PlayerPickupCallbackAction) {
+				callbackActionChain.registerCallback((PlayerPickupCallbackAction) action);
+			}
+		}
 	}
 }
