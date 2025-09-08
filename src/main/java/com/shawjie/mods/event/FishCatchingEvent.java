@@ -1,5 +1,6 @@
-package com.shawjie.mods.action;
+package com.shawjie.mods.event;
 
+import com.shawjie.mods.action.CallbackAction;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.projectile.FishingBobberEntity;
 
