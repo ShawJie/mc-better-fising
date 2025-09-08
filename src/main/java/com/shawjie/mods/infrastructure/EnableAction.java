@@ -1,4 +1,6 @@
-package com.shawjie.mods.action;
+package com.shawjie.mods.infrastructure;
+
+import com.shawjie.mods.action.CallbackAction;
 
 import java.lang.annotation.*;
 

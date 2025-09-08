@@ -1,5 +1,6 @@
-package com.shawjie.mods.action;
+package com.shawjie.mods.infrastructure;
 
+import com.shawjie.mods.action.CallbackAction;
 import com.shawjie.mods.event.FishCatchingEvent;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.Event;
@@ -27,6 +28,9 @@ public class ActionProcessRegister {
         }
 
         EnableAction enableActionAnno = modeInitializeClazz.getAnnotation(EnableAction.class);
+        if (enableActionAnno == null) {
+            return;
+        }
         for (Class<? extends CallbackAction> enableAction : enableActionAnno.classes()) {
             Type[] genericInterfaces = enableAction.getGenericInterfaces();
             for (Type genericInterface : genericInterfaces) {

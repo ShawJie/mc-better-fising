@@ -3,7 +3,6 @@
 	"package": "com.shawjie.mods.mixin",
 	"compatibilityLevel": "JAVA_21",
 	"mixins": [
-		"PlayerInventoryMixin",
 		"FishingBobberEntityMixin"
 	],
 	"injectors": {

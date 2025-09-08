@@ -1,6 +1,6 @@
 package com.shawjie.mods.mixin;
 
-import com.shawjie.mods.action.FishCatchingCallbackActionChain;
+import com.shawjie.mods.event.FishCatchingEvent;
 import com.shawjie.mods.ticker.PriorityFabricTicker;
 import net.minecraft.entity.data.TrackedData;
 import net.minecraft.entity.player.PlayerEntity;
@@ -38,11 +38,6 @@ public class FishingBobberEntityMixin {
 		at = @At("TAIL")
 	)
 	private void afterTrackedDataSet(TrackedData<?> data, CallbackInfo info) {
-		FishCatchingCallbackActionChain actionChain = FishCatchingCallbackActionChain.getInstance();
-		if (actionChain.callbackChainEmpty()) {
-			return;
-		}
-
 		FishingBobberEntity bobberEntity = ((FishingBobberEntity)((Object)this));
 		if (bobberEntity == null || !this.caughtFish) {
 			return;
@@ -53,9 +48,10 @@ public class FishingBobberEntityMixin {
 			return;
 		}
 
+		FishCatchingEvent invoker = FishCatchingEvent.EVENT.invoker();
 		PlayerEntity playerOwner = bobberEntity.getPlayerOwner();
 		processedEventCache.add(actionEntityId);
-		actionChain.processAction(playerOwner, bobberEntity);
+		invoker.whenFishCatching(playerOwner, bobberEntity);
 
 		PriorityFabricTicker.scheduleTask(() -> processedEventCache.remove(actionEntityId), CLEAR_DEPRECATED_TICK);
 	}
