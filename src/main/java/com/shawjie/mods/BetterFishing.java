@@ -31,7 +31,7 @@ public class BetterFishing implements ModInitializer {
 		// However, some things (like resources) may still be uninitialized.
 		// Proceed with mild caution.
 		LOGGER.info("Ready to registry `{}` for your game", MOD_ID);
-		ActionProcessRegister actionProcessRegister = new ActionProcessRegister();
+		ActionProcessRegister actionProcessRegister = new ActionProcessRegister(BetterFishing.class);
 
 		Event<ClientTickEvents.StartTick> startClientTick = ClientTickEvents.START_CLIENT_TICK;
 		startClientTick.register(new PriorityFabricTicker());

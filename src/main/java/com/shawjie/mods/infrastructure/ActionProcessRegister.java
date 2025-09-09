@@ -21,26 +21,19 @@ public class ActionProcessRegister {
 
     private final Map<Class<?>, SingletonCallbackActionSupplier> actionInstanceCache = new HashMap<>();
 
-    public ActionProcessRegister() {
-        Class<?> modeInitializeClazz = detectInitializer();
-        if (modeInitializeClazz == null) {
-            return;
-        }
+    public ActionProcessRegister(Class<? extends ModInitializer> initializerClass) {
+        Optional.ofNullable(initializerClass.getAnnotation(EnableAction.class))
+            .map(EnableAction::classes)
+            .ifPresent(this::processActions);
+    }
 
-        EnableAction enableActionAnno = modeInitializeClazz.getAnnotation(EnableAction.class);
-        if (enableActionAnno == null) {
-            return;
-        }
-        for (Class<? extends CallbackAction> enableAction : enableActionAnno.classes()) {
-            Type[] genericInterfaces = enableAction.getGenericInterfaces();
-            for (Type genericInterface : genericInterfaces) {
-                if (genericInterface.equals(CallbackAction.class)) {
-                    continue;
-                }
-                if (genericInterface.getTypeName().endsWith("Event") && genericInterface instanceof Class<?>) {
-                    actionInstanceCache.putIfAbsent(
-                        (Class<?>) genericInterface,
-                        new SingletonCallbackActionSupplier(() -> instanceObject(enableAction))
+    private void processActions(Class<? extends CallbackAction>[] actionClasses) {
+        for (Class<? extends CallbackAction> actionClass : actionClasses) {
+            for (Class<?> interfaceClass : actionClass.getInterfaces()) {
+                if (interfaceClass != CallbackAction.class &&
+                    interfaceClass.getSimpleName().endsWith("Event")) {
+                    actionInstanceCache.put(
+                        interfaceClass, new SingletonCallbackActionSupplier(() -> instanceObject(actionClass))
                     );
                 }
             }
@@ -54,21 +47,6 @@ public class ActionProcessRegister {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-    }
-
-    private Class<?> detectInitializer() {
-        try {
-            StackTraceElement[] stackTrace = new RuntimeException().getStackTrace();
-            for (StackTraceElement stackTraceElement : stackTrace) {
-                if ("onInitialize".equals(stackTraceElement.getMethodName())) {
-                    Class<?> actionClazz = Class.forName(stackTraceElement.getClassName());
-                    if (ModInitializer.class.isAssignableFrom(actionClazz)) {
-                        return actionClazz;
-                    }
-                }
-            }
-        } catch (ClassNotFoundException ignored) {}
-        return null;
     }
 
     @SuppressWarnings("rawtypes")
@@ -86,8 +64,8 @@ public class ActionProcessRegister {
 
     private static class SingletonCallbackActionSupplier implements Supplier<CallbackAction> {
 
-        private CallbackAction actionInstance;
-        private Supplier<CallbackAction> newInstanceAction;
+        private volatile CallbackAction actionInstance;
+        private final Supplier<CallbackAction> newInstanceAction;
 
         public SingletonCallbackActionSupplier(Supplier<CallbackAction> newInstanceAction) {
             this.newInstanceAction = newInstanceAction;
