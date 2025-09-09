@@ -49,15 +49,16 @@ public class ActionProcessRegister {
         }
     }
 
-    @SuppressWarnings("rawtypes")
+    @SuppressWarnings({"rawtypes", "unchecked"})
     public void dispatcherEventListener() {
         for (Event localEvent : localEvents) {
             Object invoker = localEvent.invoker();
             Type[] targetEvent = invoker.getClass().getGenericInterfaces();
             if (targetEvent.length == 1) {
-                Optional.ofNullable(actionInstanceCache.get((Class<?>) targetEvent[0]))
-                    .map(SingletonCallbackActionSupplier::get)
-                    .ifPresent(localEvent::register);
+                SingletonCallbackActionSupplier supplier = actionInstanceCache.get((Class<?>) targetEvent[0]);
+                if (supplier != null) {
+                    localEvent.register(supplier.get());
+                }
             }
         }
     }
