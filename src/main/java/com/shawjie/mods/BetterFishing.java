@@ -1,5 +1,6 @@
 package com.shawjie.mods;
 
+import com.shawjie.mods.action.ItemPickUpAndThrowAction;
 import com.shawjie.mods.infrastructure.ActionProcessRegister;
 import com.shawjie.mods.infrastructure.EnableAction;
 import com.shawjie.mods.action.PullUpAndReleaseThenAction;
@@ -16,7 +17,8 @@ import org.slf4j.LoggerFactory;
  */
 @EnableAction(
 	classes = {
-		PullUpAndReleaseThenAction.class
+		PullUpAndReleaseThenAction.class,
+		ItemPickUpAndThrowAction.class
 	}
 )
 public class BetterFishing implements ModInitializer {

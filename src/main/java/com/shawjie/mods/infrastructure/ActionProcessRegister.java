@@ -2,24 +2,22 @@ package com.shawjie.mods.infrastructure;
 
 import com.shawjie.mods.action.CallbackAction;
 import com.shawjie.mods.event.FishCatchingEvent;
+import com.shawjie.mods.event.PlayerPickupItemEvent;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.Event;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Type;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Supplier;
 
 public class ActionProcessRegister {
 
     private final List<Event<?>> localEvents = List.of(
-        FishCatchingEvent.EVENT
+        FishCatchingEvent.EVENT, PlayerPickupItemEvent.EVENT
     );
 
-    private final Map<Class<?>, SingletonCallbackActionSupplier> actionInstanceCache = new HashMap<>();
+    private final Map<Class<?>, List<SingletonCallbackActionSupplier>> actionInstanceCache = new HashMap<>();
 
     public ActionProcessRegister(Class<? extends ModInitializer> initializerClass) {
         Optional.ofNullable(initializerClass.getAnnotation(EnableAction.class))
@@ -32,8 +30,15 @@ public class ActionProcessRegister {
             for (Class<?> interfaceClass : actionClass.getInterfaces()) {
                 if (interfaceClass != CallbackAction.class &&
                     interfaceClass.getSimpleName().endsWith("Event")) {
-                    actionInstanceCache.put(
-                        interfaceClass, new SingletonCallbackActionSupplier(() -> instanceObject(actionClass))
+                    actionInstanceCache.compute(
+                        interfaceClass, (k, v) -> {
+                            List<SingletonCallbackActionSupplier> suppliers = v;
+                            if (suppliers == null) {
+                                suppliers = new ArrayList<>();
+                            }
+                            suppliers.add(new SingletonCallbackActionSupplier(() -> instanceObject(actionClass)));
+                            return suppliers;
+                        }
                     );
                 }
             }
@@ -55,9 +60,11 @@ public class ActionProcessRegister {
             Object invoker = localEvent.invoker();
             Type[] targetEvent = invoker.getClass().getGenericInterfaces();
             if (targetEvent.length == 1) {
-                SingletonCallbackActionSupplier supplier = actionInstanceCache.get((Class<?>) targetEvent[0]);
-                if (supplier != null) {
-                    localEvent.register(supplier.get());
+                List<SingletonCallbackActionSupplier> suppliers = actionInstanceCache.get((Class<?>) targetEvent[0]);
+                if (suppliers != null) {
+                    for (SingletonCallbackActionSupplier supplier : suppliers) {
+                        localEvent.register(supplier.get());
+                    }
                 }
             }
         }
