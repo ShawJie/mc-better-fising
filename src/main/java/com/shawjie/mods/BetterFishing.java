@@ -1,7 +1,9 @@
 package com.shawjie.mods;
 
+import com.google.gson.JsonParser;
 import com.shawjie.mods.action.ItemPickUpAndThrowAction;
 import com.shawjie.mods.infrastructure.ActionProcessRegister;
+import com.shawjie.mods.infrastructure.ConfigurationLoader;
 import com.shawjie.mods.infrastructure.EnableAction;
 import com.shawjie.mods.action.PullUpAndReleaseThenAction;
 import com.shawjie.mods.ticker.PriorityFabricTicker;
@@ -17,8 +19,7 @@ import org.slf4j.LoggerFactory;
  */
 @EnableAction(
 	classes = {
-		PullUpAndReleaseThenAction.class,
-		ItemPickUpAndThrowAction.class
+		PullUpAndReleaseThenAction.class
 	}
 )
 public class BetterFishing implements ModInitializer {
@@ -33,6 +34,9 @@ public class BetterFishing implements ModInitializer {
 		// However, some things (like resources) may still be uninitialized.
 		// Proceed with mild caution.
 		LOGGER.info("Ready to registry `{}` for your game", MOD_ID);
+		ConfigurationLoader configurationLoader = ConfigurationLoader.getInstance();
+		configurationLoader.doLoader();
+
 		ActionProcessRegister actionProcessRegister = new ActionProcessRegister(BetterFishing.class);
 
 		Event<ClientTickEvents.StartTick> startClientTick = ClientTickEvents.START_CLIENT_TICK;

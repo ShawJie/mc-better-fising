@@ -1,6 +1,9 @@
 package com.shawjie.mods.action;
 
 import com.shawjie.mods.event.FishCatchingEvent;
+import com.shawjie.mods.infrastructure.ConfigurationLoader;
+import com.shawjie.mods.infrastructure.Ordered;
+import com.shawjie.mods.property.BetterFishingConfigurationProperties;
 import com.shawjie.mods.ticker.PriorityFabricTicker;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.entity.player.PlayerEntity;
@@ -18,13 +21,18 @@ import java.util.stream.Stream;
  * Automatic fishing action that pulls up caught fish and casts a new line.
  * Implements randomized delays to simulate natural player behavior.
  */
+@Ordered(Integer.MIN_VALUE)
 public class PullUpAndReleaseThenAction implements FishCatchingEvent, CallbackAction {
 
-    private final Integer DEFAULT_DELAY_TICK = 10;
+    private final Integer DEFAULT_DELAY_TICK = 5;
     private final Random DELAY_TICK_RANDOM = new Random();
 
     @Override
     public void whenFishCatching(PlayerEntity player, FishingBobberEntity fishingBobberEntity) {
+        if (!getEndableConfig()) {
+            return;
+        }
+
         // Find which hand is holding the fishing rod
         Optional<Pair<ItemStack, Hand>> handThatHoldRod = Stream.of(
             new Pair<>(player.getMainHandStack(), Hand.MAIN_HAND),
@@ -62,5 +70,12 @@ public class PullUpAndReleaseThenAction implements FishCatchingEvent, CallbackAc
 
     private boolean holdingFishingRod(ItemStack playerStackInHand) {
         return Items.FISHING_ROD.equals(playerStackInHand.getItem().asItem());
+    }
+
+    private boolean getEndableConfig() {
+        return Optional.of(ConfigurationLoader.getInstance())
+            .map(ConfigurationLoader::getConfig)
+            .map(BetterFishingConfigurationProperties::getAutoFishingEnable)
+            .orElse(Boolean.TRUE);
     }
 }

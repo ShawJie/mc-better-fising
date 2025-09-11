@@ -1,11 +1,13 @@
 package com.shawjie.mods.infrastructure;
 
+import com.google.common.collect.Comparators;
 import com.shawjie.mods.action.CallbackAction;
 import com.shawjie.mods.event.FishCatchingEvent;
 import com.shawjie.mods.event.PlayerPickupItemEvent;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.Event;
 
+import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Type;
 import java.util.*;
@@ -18,6 +20,7 @@ public class ActionProcessRegister {
     );
 
     private final Map<Class<?>, List<SingletonCallbackActionSupplier>> actionInstanceCache = new HashMap<>();
+    private final AnnotationAwareOrderComparator actionComparator = new AnnotationAwareOrderComparator();
 
     public ActionProcessRegister(Class<? extends ModInitializer> initializerClass) {
         Optional.ofNullable(initializerClass.getAnnotation(EnableAction.class))
@@ -62,9 +65,13 @@ public class ActionProcessRegister {
             if (targetEvent.length == 1) {
                 List<SingletonCallbackActionSupplier> suppliers = actionInstanceCache.get((Class<?>) targetEvent[0]);
                 if (suppliers != null) {
+                    List<CallbackAction> actions = new ArrayList<>(suppliers.size());
                     for (SingletonCallbackActionSupplier supplier : suppliers) {
-                        localEvent.register(supplier.get());
+                        actions.add(supplier.get());
                     }
+
+                    actions.sort(actionComparator);
+                    actions.forEach(localEvent::register);
                 }
             }
         }
@@ -89,6 +96,20 @@ public class ActionProcessRegister {
                 }
             }
             return actionInstance;
+        }
+    }
+
+    private class AnnotationAwareOrderComparator implements Comparator<Object> {
+
+        @Override
+        public int compare(Object o1, Object o2) {
+            return findOrderFromAnnotation(o1) - findOrderFromAnnotation(o2);
+        }
+
+        private Integer findOrderFromAnnotation(Object obj) {
+            Class<?> optClazz = obj.getClass();
+            Ordered annotation = optClazz.getAnnotation(Ordered.class);
+            return annotation == null ? Integer.MAX_VALUE : annotation.value();
         }
     }
 }
