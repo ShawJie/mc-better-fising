@@ -12,31 +12,57 @@ import net.minecraft.entity.projectile.FishingBobberEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.registry.entry.RegistryEntry;
+import net.minecraft.server.network.ServerPlayerEntity;
 
-import java.util.Collections;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 @Ordered
 public class ItemPickUpAndThrowAction implements FishCatchingEvent, PlayerPickupItemEvent, CallbackAction {
 
+    private final Map<UUID, Integer> fishingCountRecord = new HashMap<>();
+
     @Override
     public void whenFishCatching(PlayerEntity player, FishingBobberEntity fishingBobberEntity) {
-        
+        if (!(player instanceof ServerPlayerEntity)) {
+            return;
+        }
+        incrementFishingCountRecord(player);
     }
 
     @Override
     public void interact(PlayerInventory playerPickingUpItems, int slot, ItemStack entityBeingPickedUp) {
-        BetterFishing.LOGGER.info("picked item: {}", entityBeingPickedUp);
-        RegistryEntry<Item> registryEntry = entityBeingPickedUp.getRegistryEntry();
-
-        boolean itemInBlock = blockItemsFromConfig().contains(registryEntry.getIdAsString());
-        if (!itemInBlock) {
+        PlayerEntity player = playerPickingUpItems.player;
+        if (!(player instanceof ServerPlayerEntity)) {
             return;
         }
 
-        PlayerEntity targetPlayer = playerPickingUpItems.player;
-        targetPlayer.dropItem(entityBeingPickedUp, false);
+        UUID uuid = player.getUuid();
+        BetterFishing.LOGGER.info("Player {} picked item: {}", uuid, entityBeingPickedUp);
+        RegistryEntry<Item> registryEntry = entityBeingPickedUp.getRegistryEntry();
+
+        boolean itemInBlock = blockItemsFromConfig().contains(registryEntry.getIdAsString());
+        if (reduceFishingCountRecord(player) == null || !itemInBlock) {
+            return;
+        }
+
+        ItemStack removeStack = playerPickingUpItems.removeStack(slot, entityBeingPickedUp.getCount());
+        if (removeStack != ItemStack.EMPTY) {
+            player.dropItem(removeStack, false, true);
+        }
+    }
+
+    private void incrementFishingCountRecord(PlayerEntity player) {
+        fishingCountRecord.compute(player.getUuid(),
+            (k, v) -> ((v == null) ? 0 : v) + 1);
+    }
+
+    private Integer reduceFishingCountRecord(PlayerEntity player) {
+        UUID identify = player.getUuid();
+        Integer remain = fishingCountRecord.computeIfPresent(identify, (k, v) -> v - 1);
+        if (remain != null && remain == 0) {
+            fishingCountRecord.remove(identify);
+        }
+        return remain;
     }
 
     private Set<String> blockItemsFromConfig() {
@@ -44,5 +70,8 @@ public class ItemPickUpAndThrowAction implements FishCatchingEvent, PlayerPickup
             .map(ConfigurationLoader::getConfig)
             .map(BetterFishingConfigurationProperties::getBlockListItems)
             .orElse(Collections.emptySet());
+    }
+
+    public ItemPickUpAndThrowAction() {
     }
 }

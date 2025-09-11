@@ -19,7 +19,8 @@ import org.slf4j.LoggerFactory;
  */
 @EnableAction(
 	classes = {
-		PullUpAndReleaseThenAction.class
+		PullUpAndReleaseThenAction.class,
+		ItemPickUpAndThrowAction.class
 	}
 )
 public class BetterFishing implements ModInitializer {

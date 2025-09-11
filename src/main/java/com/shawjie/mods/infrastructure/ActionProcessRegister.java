@@ -30,6 +30,7 @@ public class ActionProcessRegister {
 
     private void processActions(Class<? extends CallbackAction>[] actionClasses) {
         for (Class<? extends CallbackAction> actionClass : actionClasses) {
+            SingletonCallbackActionSupplier supplier = new SingletonCallbackActionSupplier(() -> instanceObject(actionClass));
             for (Class<?> interfaceClass : actionClass.getInterfaces()) {
                 if (interfaceClass != CallbackAction.class &&
                     interfaceClass.getSimpleName().endsWith("Event")) {
@@ -39,7 +40,7 @@ public class ActionProcessRegister {
                             if (suppliers == null) {
                                 suppliers = new ArrayList<>();
                             }
-                            suppliers.add(new SingletonCallbackActionSupplier(() -> instanceObject(actionClass)));
+                            suppliers.add(supplier);
                             return suppliers;
                         }
                     );
