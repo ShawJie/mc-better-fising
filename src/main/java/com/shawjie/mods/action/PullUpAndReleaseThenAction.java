@@ -29,10 +29,6 @@ public class PullUpAndReleaseThenAction implements FishCatchingEvent, CallbackAc
 
     @Override
     public void whenFishCatching(PlayerEntity player, FishingBobberEntity fishingBobberEntity) {
-        if (!getEndableConfig()) {
-            return;
-        }
-
         // Find which hand is holding the fishing rod
         Optional<Pair<ItemStack, Hand>> handThatHoldRod = Stream.of(
             new Pair<>(player.getMainHandStack(), Hand.MAIN_HAND),
@@ -62,9 +58,9 @@ public class PullUpAndReleaseThenAction implements FishCatchingEvent, CallbackAc
                         // Cast a new fishing line
                         releaseClient.interactionManager.interactItem(player, optHand);
                     }
-                }, (DEFAULT_DELAY_TICK + DELAY_TICK_RANDOM.nextInt(DEFAULT_DELAY_TICK)));
+                }, getConfigReleaseTick());
             }
-        }, DEFAULT_DELAY_TICK);
+        }, getConfigPullupTick());
 
     }
 
@@ -72,10 +68,17 @@ public class PullUpAndReleaseThenAction implements FishCatchingEvent, CallbackAc
         return Items.FISHING_ROD.equals(playerStackInHand.getItem().asItem());
     }
 
-    private boolean getEndableConfig() {
+    private Integer getConfigPullupTick() {
         return Optional.of(ConfigurationLoader.getInstance())
             .map(ConfigurationLoader::getConfig)
-            .map(BetterFishingConfigurationProperties::getAutoFishingEnable)
-            .orElse(Boolean.TRUE);
+            .map(BetterFishingConfigurationProperties::getPullUpTick)
+            .orElse(DEFAULT_DELAY_TICK);
+    }
+
+    private Integer getConfigReleaseTick() {
+        return Optional.of(ConfigurationLoader.getInstance())
+            .map(ConfigurationLoader::getConfig)
+            .map(BetterFishingConfigurationProperties::getReleaseTick)
+            .orElse(DEFAULT_DELAY_TICK) + DELAY_TICK_RANDOM.nextInt(DEFAULT_DELAY_TICK);
     }
 }
