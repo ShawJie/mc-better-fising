@@ -57,6 +57,13 @@ public class ConfigurationLoader {
         return gson.fromJson(configString, BetterFishingConfigurationProperties.class);
     }
 
+    public void refreshConfig(BetterFishingConfigurationProperties properties) {
+        FabricLoader instance = FabricLoader.getInstance();
+        Path configFilePath = instance.getConfigDir().resolve(BETTER_FISHING_CONFIG_FILE);
+        configPersistent(configFilePath, properties);
+        this.properties = properties;
+    }
+
     private BetterFishingConfigurationProperties generateDefaultConfig() {
         BetterFishingConfigurationProperties defaultConfigProperties = new BetterFishingConfigurationProperties();
         defaultConfigProperties.setAutoFishingEnable(true);

@@ -12,12 +12,15 @@
 		"sources": "https://github.com/ShawJie/mc-better-fising"
 	},
 	"license": "CC0-1.0",
-	"icon": "assets/better-fishing/icon3.png",
+	"icon": "assets/better-fishing/icon.png",
 	"environment": "*",
 	"entrypoints": {
 		"main": [
 			"com.shawjie.mods.BetterFishing"
-		]
+		],
+        "modmenu": [
+            "com.shawjie.mods.config.BetterFishingModMenuApiImpl"
+        ]
 	},
 	"mixins": [
 		"better-fishing.mixins.json"
@@ -29,6 +32,6 @@
 		"fabric-api": "*"
 	},
 	"suggests": {
-		"another-mod": "*"
+		"modmenu": ">=15.0.0"
 	}
 }
