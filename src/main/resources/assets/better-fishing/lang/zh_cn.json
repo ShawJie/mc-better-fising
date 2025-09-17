@@ -1,0 +1,11 @@
+{
+  "better-fishing.config.title": "更好的钓鱼 - 配置",
+  "better-fishing.config.auto_fishing_enable": "启用自动钓鱼",
+  "better-fishing.config.pull_up_label": "拉竿:",
+  "better-fishing.config.pull_up_tick_desc": "拉竿前延迟 (1刻 = 1/20秒)",
+  "better-fishing.config.release_label": "抛竿:",
+  "better-fishing.config.release_tick_desc": "重新抛竿前延迟",
+  "better-fishing.config.block_list_label": "阻止物品:",
+  "better-fishing.config.block_list_desc": "自动丢弃物品 (例如: minecraft:cod)",
+  "better-fishing.config.save": "保存配置"
+}

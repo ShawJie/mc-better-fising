@@ -3,13 +3,13 @@
 	"id": "better-fishing",
 	"version": "${version}",
 	"name": "Better Fishing",
-	"description": "This is an example description! Tell everyone what your mod is about!",
+	"description": "An intelligent automatic fishing mod that enhances your Minecraft fishing experience with smart automation, configurable item filtering, and event-driven architecture for optimal performance.",
 	"authors": [
-		"Me!"
+		"ShawJie"
 	],
 	"contact": {
-		"homepage": "https://fabricmc.net/",
-		"sources": "https://github.com/FabricMC/fabric-example-mod"
+		"homepage": "https://github.com/ShawJie/mc-better-fising",
+		"sources": "https://github.com/ShawJie/mc-better-fising"
 	},
 	"license": "CC0-1.0",
 	"icon": "assets/better-fishing/icon.png",
@@ -17,7 +17,10 @@
 	"entrypoints": {
 		"main": [
 			"com.shawjie.mods.BetterFishing"
-		]
+		],
+        "modmenu": [
+            "com.shawjie.mods.config.BetterFishingModMenuApiImpl"
+        ]
 	},
 	"mixins": [
 		"better-fishing.mixins.json"
@@ -29,6 +32,6 @@
 		"fabric-api": "*"
 	},
 	"suggests": {
-		"another-mod": "*"
+		"modmenu": ">=15.0.0"
 	}
 }

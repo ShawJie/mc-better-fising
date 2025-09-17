@@ -1,6 +1,8 @@
 package com.shawjie.mods.mixin;
 
 import com.shawjie.mods.event.FishCatchingEvent;
+import com.shawjie.mods.infrastructure.ConfigurationLoader;
+import com.shawjie.mods.property.BetterFishingConfigurationProperties;
 import com.shawjie.mods.ticker.PriorityFabricTicker;
 import net.minecraft.entity.data.TrackedData;
 import net.minecraft.entity.player.PlayerEntity;
@@ -12,6 +14,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -24,7 +27,8 @@ import java.util.Set;
 public class FishingBobberEntityMixin {
 
 	private static final Integer CLEAR_DEPRECATED_TICK = 20;
-	private static final Set<Integer> processedEventCache = new HashSet<>();
+
+	private final Set<Integer> processedEventCache = new HashSet<>();
 
 	@Shadow
 	private boolean caughtFish;
@@ -44,7 +48,7 @@ public class FishingBobberEntityMixin {
 		}
 
 		int actionEntityId = bobberEntity.getId();
-		if (processedEventCache.contains(actionEntityId)) {
+		if (!getEndableConfig() || processedEventCache.contains(actionEntityId)) {
 			return;
 		}
 
@@ -54,5 +58,12 @@ public class FishingBobberEntityMixin {
 		invoker.whenFishCatching(playerOwner, bobberEntity);
 
 		PriorityFabricTicker.scheduleTask(() -> processedEventCache.remove(actionEntityId), CLEAR_DEPRECATED_TICK);
+	}
+
+	private boolean getEndableConfig() {
+		return Optional.of(ConfigurationLoader.getInstance())
+			.map(ConfigurationLoader::getConfig)
+			.map(BetterFishingConfigurationProperties::getAutoFishingEnable)
+			.orElse(Boolean.TRUE);
 	}
 }
