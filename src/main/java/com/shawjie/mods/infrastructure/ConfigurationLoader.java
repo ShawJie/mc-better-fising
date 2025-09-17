@@ -60,8 +60,25 @@ public class ConfigurationLoader {
     public void refreshConfig(BetterFishingConfigurationProperties properties) {
         FabricLoader instance = FabricLoader.getInstance();
         Path configFilePath = instance.getConfigDir().resolve(BETTER_FISHING_CONFIG_FILE);
+
+        validateConfig(properties);
         configPersistent(configFilePath, properties);
         this.properties = properties;
+    }
+
+    private void validateConfig(BetterFishingConfigurationProperties properties) {
+        if (properties.getPullUpTick() == null || properties.getPullUpTick() < 5) {
+            properties.setPullUpTick(5);
+        }
+        if (properties.getPullUpTick() > 20) {
+            properties.setPullUpTick(20);
+        }
+        if (properties.getReleaseTick() == null || properties.getReleaseTick() < 10) {
+            properties.setReleaseTick(10);
+        }
+        if (properties.getReleaseTick() > 500) {
+            properties.setReleaseTick(500);
+        }
     }
 
     private BetterFishingConfigurationProperties generateDefaultConfig() {

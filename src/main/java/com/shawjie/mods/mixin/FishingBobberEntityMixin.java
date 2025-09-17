@@ -26,9 +26,9 @@ import java.util.Set;
 @Mixin(FishingBobberEntity.class)
 public class FishingBobberEntityMixin {
 
-	private static final Integer CLEAR_DEPRECATED_TICK = 20;
+	private static final Integer CLEAR_DEPRECATED_TICK = 3;
 
-	private final Set<Integer> processedEventCache = new HashSet<>();
+	private static final Set<Integer> PROCESSED_EVENT_CACHE = new HashSet<>();
 
 	@Shadow
 	private boolean caughtFish;
@@ -48,16 +48,15 @@ public class FishingBobberEntityMixin {
 		}
 
 		int actionEntityId = bobberEntity.getId();
-		if (!getEndableConfig() || processedEventCache.contains(actionEntityId)) {
+		if (!getEndableConfig() || !PROCESSED_EVENT_CACHE.add(actionEntityId)) {
 			return;
 		}
+		PlayerEntity playerOwner = bobberEntity.getPlayerOwner();
 
 		FishCatchingEvent invoker = FishCatchingEvent.EVENT.invoker();
-		PlayerEntity playerOwner = bobberEntity.getPlayerOwner();
-		processedEventCache.add(actionEntityId);
 		invoker.whenFishCatching(playerOwner, bobberEntity);
 
-		PriorityFabricTicker.scheduleTask(() -> processedEventCache.remove(actionEntityId), CLEAR_DEPRECATED_TICK);
+		PriorityFabricTicker.scheduleTask(() -> PROCESSED_EVENT_CACHE.remove(actionEntityId), CLEAR_DEPRECATED_TICK);
 	}
 
 	private boolean getEndableConfig() {

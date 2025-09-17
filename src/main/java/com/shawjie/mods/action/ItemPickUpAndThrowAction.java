@@ -51,8 +51,7 @@ public class ItemPickUpAndThrowAction implements FishCatchingEvent, PlayerPickup
             return;
         }
 
-        LootTable lootTable = Optional.ofNullable(registrieyLookup.getLootTable(LootTables.FISHING_GAMEPLAY))
-            .orElse(LootTable.EMPTY);
+        LootTable lootTable = Optional.ofNullable(registrieyLookup.getLootTable(LootTables.FISHING_GAMEPLAY)).orElse(LootTable.EMPTY);
         Set<String> lootItemSet = getItemsFromLootTable(lootTable, registrieyLookup);
 
         incrementFishingCountRecord();
@@ -79,7 +78,7 @@ public class ItemPickUpAndThrowAction implements FishCatchingEvent, PlayerPickup
 
         ItemStack removeStack = playerPickingUpItems.removeStack(slot, entityBeingPickedUp.getCount());
         if (removeStack != ItemStack.EMPTY) {
-            player.dropItem(removeStack, false, true);
+            player.dropItem(removeStack, true, true);
         }
     }
 
