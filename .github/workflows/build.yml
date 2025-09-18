@@ -52,14 +52,13 @@ jobs:
           echo "Found mod jar: $MOD_JAR"
           echo "Found sources jar: $SOURCES_JAR"
           
-      - name: Create Release
-        id: create_release
-        uses: actions/create-release@v1
+      - name: Create Release and Upload Assets
+        uses: softprops/action-gh-release@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: ${{ steps.tag.outputs.tag }}
-          release_name: Better Fishing ${{ steps.tag.outputs.tag }}
+          name: Better Fishing ${{ steps.tag.outputs.tag }}
           body: |
             ## Better Fishing ${{ steps.tag.outputs.tag }}
             
@@ -78,34 +77,10 @@ jobs:
             3. Place it in your `.minecraft/mods` folder
             4. Launch the game and enjoy!
             
-            ### 🌟 Features
-            - Automatic fishing with configurable timing
-            - Smart item filtering and auto-drop
-            - ModMenu configuration interface
-            - Multilingual support (English & Chinese)
-            - Performance optimized event handling
-            
             ---
             *For issues and support, please visit our [GitHub repository](https://github.com/ShawJie/mc-better-fising)*
           draft: false
           prerelease: ${{ contains(steps.tag.outputs.tag, 'beta') || contains(steps.tag.outputs.tag, 'alpha') }}
-          
-      - name: Upload Mod JAR
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ${{ steps.jars.outputs.mod_jar }}
-          asset_name: better-fishing-${{ steps.mod_version.outputs.version }}.jar
-          asset_content_type: application/java-archive
-          
-      - name: Upload Sources JAR
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ${{ steps.jars.outputs.sources_jar }}
-          asset_name: better-fishing-${{ steps.mod_version.outputs.version }}-sources.jar
-          asset_content_type: application/java-archive
+          files: |
+            ${{ steps.jars.outputs.mod_jar }}
+            ${{ steps.jars.outputs.sources_jar }}
