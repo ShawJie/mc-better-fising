@@ -1,13 +1,11 @@
 package com.shawjie.mods.infrastructure;
 
-import com.google.common.collect.Comparators;
 import com.shawjie.mods.action.CallbackAction;
 import com.shawjie.mods.event.FishCatchingEvent;
 import com.shawjie.mods.event.PlayerPickupItemEvent;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.Event;
 
-import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Type;
 import java.util.*;

@@ -1,33 +1,111 @@
-# Automatically build the project and run any configured tests for every push
-# and submitted pull request. This can help catch issues that only occur on
-# certain platforms or Java versions, and provides a first line of defence
-# against bad commits.
+# Automatically build the project and create releases when tags are pushed
+# This workflow builds the mod, creates a GitHub release, and uploads the mod jar and sources jar
 
-name: build
+name: Build and Release
 on:
-  create:
+  push:
     tags:
-      - 1.*
+      - 'v*'
+      - '[0-9]+.*'
 
 jobs:
-  build:
+  build-and-release:
     runs-on: ubuntu-24.04
+    permissions:
+      contents: write
     steps:
-      - name: checkout repository
+      - name: Checkout repository
         uses: actions/checkout@v4
-      - name: validate gradle wrapper
+        
+      - name: Validate gradle wrapper
         uses: gradle/actions/wrapper-validation@v4
-      - name: setup jdk
+        
+      - name: Setup JDK
         uses: actions/setup-java@v4
         with:
           java-version: '21'
           distribution: 'microsoft'
-      - name: make gradle wrapper executable
+          
+      - name: Make gradle wrapper executable
         run: chmod +x ./gradlew
-      - name: build
+        
+      - name: Build project
         run: ./gradlew build
-      - name: capture build artifacts
-        uses: actions/upload-artifact@v4
+        
+      - name: Get tag name
+        id: tag
+        run: echo "tag=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+        
+      - name: Get mod version from gradle.properties
+        id: mod_version
+        run: |
+          VERSION=$(grep '^mod_version=' gradle.properties | cut -d'=' -f2)
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          
+      - name: Find jar files
+        id: jars
+        run: |
+          MOD_JAR=$(find build/libs -name "*-${{ steps.mod_version.outputs.version }}.jar" ! -name "*-sources.jar" ! -name "*-dev.jar" | head -1)
+          SOURCES_JAR=$(find build/libs -name "*-${{ steps.mod_version.outputs.version }}-sources.jar" | head -1)
+          echo "mod_jar=$MOD_JAR" >> $GITHUB_OUTPUT
+          echo "sources_jar=$SOURCES_JAR" >> $GITHUB_OUTPUT
+          echo "Found mod jar: $MOD_JAR"
+          echo "Found sources jar: $SOURCES_JAR"
+          
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          name: Artifacts
-          path: build/libs/
+          tag_name: ${{ steps.tag.outputs.tag }}
+          release_name: Better Fishing ${{ steps.tag.outputs.tag }}
+          body: |
+            ## Better Fishing ${{ steps.tag.outputs.tag }}
+            
+            ### 📦 Downloads
+            - **Mod JAR**: Main mod file for Minecraft
+            - **Sources JAR**: Source code for developers
+            
+            ### 📋 Requirements
+            - Minecraft 1.21.8
+            - Fabric Loader ≥ 0.17.2
+            - Fabric API
+            
+            ### 🔧 Installation
+            1. Install Fabric Loader and Fabric API
+            2. Download the mod JAR file
+            3. Place it in your `.minecraft/mods` folder
+            4. Launch the game and enjoy!
+            
+            ### 🌟 Features
+            - Automatic fishing with configurable timing
+            - Smart item filtering and auto-drop
+            - ModMenu configuration interface
+            - Multilingual support (English & Chinese)
+            - Performance optimized event handling
+            
+            ---
+            *For issues and support, please visit our [GitHub repository](https://github.com/ShawJie/mc-better-fising)*
+          draft: false
+          prerelease: ${{ contains(steps.tag.outputs.tag, 'beta') || contains(steps.tag.outputs.tag, 'alpha') }}
+          
+      - name: Upload Mod JAR
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ${{ steps.jars.outputs.mod_jar }}
+          asset_name: better-fishing-${{ steps.mod_version.outputs.version }}.jar
+          asset_content_type: application/java-archive
+          
+      - name: Upload Sources JAR
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ${{ steps.jars.outputs.sources_jar }}
+          asset_name: better-fishing-${{ steps.mod_version.outputs.version }}-sources.jar
+          asset_content_type: application/java-archive
