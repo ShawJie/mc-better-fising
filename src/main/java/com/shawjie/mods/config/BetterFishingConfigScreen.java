@@ -22,12 +22,14 @@ public class BetterFishingConfigScreen extends Screen {
     
     // UI Components
     private CheckboxWidget autoFishingToggle;
+    private CheckboxWidget stopBeforeRodBreakToggle;
     private TextFieldWidget pullUpTickField;
     private TextFieldWidget releaseTickField;
     private TextFieldWidget blockListField;
     
     // Temporary values for editing
     private boolean tempAutoFishingEnable;
+    private boolean tempStopBeforeRodBreak;
     private int tempPullUpTick;
     private int tempReleaseTick;
     private String tempBlockListText;
@@ -39,6 +41,7 @@ public class BetterFishingConfigScreen extends Screen {
         
         // Initialize temporary values
         this.tempAutoFishingEnable = config.getAutoFishingEnable() != null ? config.getAutoFishingEnable() : true;
+        this.tempStopBeforeRodBreak = config.getStopBeforeRodBreak() != null ? config.getStopBeforeRodBreak() : false;
         this.tempPullUpTick = config.getPullUpTick() != null ? config.getPullUpTick() : 5;
         this.tempReleaseTick = config.getReleaseTick() != null ? config.getReleaseTick() : 10;
         this.tempBlockListText = config.getBlockListItems() != null ? 
@@ -66,15 +69,26 @@ public class BetterFishingConfigScreen extends Screen {
         .build();
         this.addDrawableChild(autoFishingToggle);
         
+        // Stop Before Rod Break Toggle
+        this.stopBeforeRodBreakToggle = CheckboxWidget.builder(
+            Text.translatable("better-fishing.config.stop_before_rod_break"), 
+            this.textRenderer
+        )
+        .pos(centerX - 80, startY + spacing)
+        .checked(tempStopBeforeRodBreak)
+        .callback((checkbox, checked) -> tempStopBeforeRodBreak = checked)
+        .build();
+        this.addDrawableChild(stopBeforeRodBreakToggle);
+        
         // Pull Up Tick Field
         this.addDrawableChild(ButtonWidget.builder(
             Text.translatable("better-fishing.config.pull_up_label"), 
             button -> {}
-        ).dimensions(centerX - labelWidth, startY + spacing, labelWidth, 20).build());
+        ).dimensions(centerX - labelWidth, startY + spacing * 2, labelWidth, 20).build());
         
         this.pullUpTickField = new TextFieldWidget(
             this.textRenderer, 
-            centerX + 5, startY + spacing, fieldWidth, 20, 
+            centerX + 5, startY + spacing * 2, fieldWidth, 20, 
             Text.translatable("better-fishing.config.pull_up_tick")
         );
         this.pullUpTickField.setText(String.valueOf(tempPullUpTick));
@@ -91,11 +105,11 @@ public class BetterFishingConfigScreen extends Screen {
         this.addDrawableChild(ButtonWidget.builder(
             Text.translatable("better-fishing.config.release_label"), 
             button -> {}
-        ).dimensions(centerX - labelWidth, startY + spacing * 2, labelWidth, 20).build());
+        ).dimensions(centerX - labelWidth, startY + spacing * 3, labelWidth, 20).build());
         
         this.releaseTickField = new TextFieldWidget(
             this.textRenderer, 
-            centerX + 5, startY + spacing * 2, fieldWidth, 20, 
+            centerX + 5, startY + spacing * 3, fieldWidth, 20, 
             Text.translatable("better-fishing.config.release_tick")
         );
         this.releaseTickField.setText(String.valueOf(tempReleaseTick));
@@ -112,11 +126,11 @@ public class BetterFishingConfigScreen extends Screen {
         this.addDrawableChild(ButtonWidget.builder(
             Text.translatable("better-fishing.config.block_list_label"), 
             button -> {}
-        ).dimensions(centerX - labelWidth, startY + spacing * 3, labelWidth, 20).build());
+        ).dimensions(centerX - labelWidth, startY + spacing * 4, labelWidth, 20).build());
         
         this.blockListField = new TextFieldWidget(
             this.textRenderer, 
-            centerX + 5, startY + spacing * 3, 150, 20, 
+            centerX + 5, startY + spacing * 4, 150, 20, 
             Text.translatable("better-fishing.config.block_list")
         );
         this.blockListField.setText(tempBlockListText);
@@ -124,7 +138,7 @@ public class BetterFishingConfigScreen extends Screen {
         this.addDrawableChild(blockListField);
         
         // Calculate button positions to ensure they're visible
-        int buttonY = Math.min(startY + spacing * 4 + 10, this.height - 60);
+        int buttonY = Math.min(startY + spacing * 5 + 10, this.height - 60);
         
         // Save and Cancel buttons side by side
         this.addDrawableChild(ButtonWidget.builder(
@@ -142,6 +156,7 @@ public class BetterFishingConfigScreen extends Screen {
         BetterFishingConfigurationProperties newProperties = new BetterFishingConfigurationProperties();
         // Update configuration with new values
         newProperties.setAutoFishingEnable(tempAutoFishingEnable);
+        newProperties.setStopBeforeRodBreak(tempStopBeforeRodBreak);
         newProperties.setPullUpTick(Math.max(1, tempPullUpTick)); // Ensure positive value
         newProperties.setReleaseTick(Math.max(1, tempReleaseTick)); // Ensure positive value
         
@@ -180,7 +195,7 @@ public class BetterFishingConfigScreen extends Screen {
         );
         
         // Draw compact field descriptions
-        int descY = 85;
+        int descY = 110;
         int descSpacing = 25;
         
         context.drawTextWithShadow(

@@ -87,6 +87,7 @@ public class ConfigurationLoader {
         defaultConfigProperties.setPullUpTick(5);
         defaultConfigProperties.setReleaseTick(10);
         defaultConfigProperties.setBlockListItems(Collections.emptySet());
+        defaultConfigProperties.setStopBeforeRodBreak(Boolean.FALSE);
         return defaultConfigProperties;
     }
 

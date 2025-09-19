@@ -24,24 +24,26 @@ import java.util.stream.Stream;
 @Ordered(Integer.MIN_VALUE)
 public class PullUpAndReleaseThenAction implements FishCatchingEvent, CallbackAction {
 
+    private final Integer SAVE_ROD_THRESHOLD = 5;
     private final Integer DEFAULT_DELAY_TICK = 5;
     private final Random DELAY_TICK_RANDOM = new Random();
 
     @Override
     public void whenFishCatching(PlayerEntity player, FishingBobberEntity fishingBobberEntity) {
         // Find which hand is holding the fishing rod
-        Optional<Pair<ItemStack, Hand>> handThatHoldRod = Stream.of(
-            new Pair<>(player.getMainHandStack(), Hand.MAIN_HAND),
-            new Pair<>(player.getOffHandStack(), Hand.OFF_HAND)
-        )
-            .filter(handPair -> holdingFishingRod(handPair.getLeft()))
+        Optional<ItemStackWithHand> handThatHoldRod =
+            Stream.of(
+                new ItemStackWithHand(player.getMainHandStack(), Hand.MAIN_HAND),
+                new ItemStackWithHand(player.getOffHandStack(), Hand.OFF_HAND)
+            )
+            .filter(stackHand -> holdingFishingRod(stackHand.itemStack()))
             .findFirst();
 
         if (handThatHoldRod.isEmpty()) {
             return;
         }
 
-        final Hand optHand = handThatHoldRod.get().getRight();
+        final Hand optHand = handThatHoldRod.get().operateHand();
         // Schedule the pull-up action with initial delay
         PriorityFabricTicker.scheduleTask(() -> {
             ItemStack stackInHand = player.getStackInHand(optHand);
@@ -50,6 +52,14 @@ public class PullUpAndReleaseThenAction implements FishCatchingEvent, CallbackAc
             if (holdingFishingRod(stackInHand) && catchClient.interactionManager != null) {
                 // Pull up the fishing line
                 catchClient.interactionManager.interactItem(player, optHand);
+
+
+                if (getConfigStopBeforeRodBreak()) {
+                    ItemStack fishingRodItem = handThatHoldRod.get().itemStack();
+                    if (fishingRodItem.getMaxDamage() - fishingRodItem.getDamage() <= SAVE_ROD_THRESHOLD) {
+                        return;
+                    }
+                }
 
                 // Schedule the cast action with randomized delay
                 PriorityFabricTicker.scheduleTask(() -> {
@@ -81,4 +91,13 @@ public class PullUpAndReleaseThenAction implements FishCatchingEvent, CallbackAc
             .map(BetterFishingConfigurationProperties::getReleaseTick)
             .orElse(DEFAULT_DELAY_TICK) + DELAY_TICK_RANDOM.nextInt(DEFAULT_DELAY_TICK);
     }
+
+    private Boolean getConfigStopBeforeRodBreak() {
+        return Optional.of(ConfigurationLoader.getInstance())
+            .map(ConfigurationLoader::getConfig)
+            .map(BetterFishingConfigurationProperties::getStopBeforeRodBreak)
+            .orElse(Boolean.FALSE);
+    }
+
+    private record ItemStackWithHand(ItemStack itemStack, Hand operateHand){}
 }

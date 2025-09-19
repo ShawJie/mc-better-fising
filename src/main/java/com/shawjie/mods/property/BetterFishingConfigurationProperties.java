@@ -10,6 +10,7 @@ public class BetterFishingConfigurationProperties {
     private Integer releaseTick;
 
     private Set<String> blockListItems;
+    private Boolean stopBeforeRodBreak;
 
     public Boolean getAutoFishingEnable() {
         return autoFishingEnable;
@@ -41,5 +42,13 @@ public class BetterFishingConfigurationProperties {
 
     public void setBlockListItems(Set<String> blockListItems) {
         this.blockListItems = blockListItems;
+    }
+
+    public Boolean getStopBeforeRodBreak() {
+        return stopBeforeRodBreak;
+    }
+
+    public void setStopBeforeRodBreak(Boolean stopBeforeRodBreak) {
+        this.stopBeforeRodBreak = stopBeforeRodBreak;
     }
 }
