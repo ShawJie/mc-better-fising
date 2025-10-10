@@ -2,7 +2,7 @@
 
 [English](README.md) | [中文](README-zh_CN.md)
 
-一个为 Minecraft 1.21.8 构建的基于 Fabric 框架的自动钓鱼模组。
+一个为 Minecraft 1.21.9 构建的基于 Fabric 框架的自动钓鱼模组。
 
 ## 功能特性
 
@@ -29,9 +29,9 @@
 
 ## 系统要求
 
-- **Minecraft**: 1.21.8
+- **Minecraft**: 1.21.9
 - **Fabric Loader**: ≥ 0.17.2
-- **Fabric API**: 0.133.0+1.21.8
+- **Fabric API**: 0.134.0+1.21.9
 - **Java**: ≥ 21
 
 ## 安装方法

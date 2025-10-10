@@ -2,7 +2,7 @@
 
 [English](README.md) | [中文](README-zh_CN.md)
 
-An automatic fishing mod for Minecraft 1.21.8 built on the Fabric framework.
+An automatic fishing mod for Minecraft 1.21.9 built on the Fabric framework.
 
 ## Features
 
@@ -28,9 +28,9 @@ An automatic fishing mod for Minecraft 1.21.8 built on the Fabric framework.
 
 ## Requirements
 
-- **Minecraft**: 1.21.8
+- **Minecraft**: 1.21.9
 - **Fabric Loader**: ≥ 0.17.2
-- **Fabric API**: 0.133.0+1.21.8
+- **Fabric API**: 0.134.0+1.21.9
 - **Java**: ≥ 21
 
 ## Installation
