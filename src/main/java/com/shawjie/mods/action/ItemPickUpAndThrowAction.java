@@ -43,7 +43,7 @@ public class ItemPickUpAndThrowAction implements FishCatchingEvent, PlayerPickup
         if (!(player instanceof ServerPlayerEntity)) {
             return;
         }
-        ReloadableRegistries.Lookup registrieyLookup = Optional.ofNullable(fishingBobberEntity.getWorld())
+        ReloadableRegistries.Lookup registrieyLookup = Optional.ofNullable(fishingBobberEntity.getEntityWorld())
             .map(World::getServer)
             .map(MinecraftServer::getReloadableRegistries)
             .orElse(null);
