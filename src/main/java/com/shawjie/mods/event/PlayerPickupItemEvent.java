@@ -2,8 +2,8 @@ package com.shawjie.mods.event;
 
 import net.fabricmc.fabric.api.event.Event;
 import net.fabricmc.fabric.api.event.EventFactory;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.item.ItemStack;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.item.ItemStack;
 
 public interface PlayerPickupItemEvent {
 
@@ -15,5 +15,5 @@ public interface PlayerPickupItemEvent {
             }
     );
 
-    void interact(PlayerInventory playerPickingUpItems, int slot, ItemStack entityBeingPickedUp);
+    void interact(Inventory playerPickingUpItems, int slot, ItemStack entityBeingPickedUp);
 }

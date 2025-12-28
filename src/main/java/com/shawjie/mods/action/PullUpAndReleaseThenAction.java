@@ -5,13 +5,12 @@ import com.shawjie.mods.infrastructure.ConfigurationLoader;
 import com.shawjie.mods.infrastructure.Ordered;
 import com.shawjie.mods.property.BetterFishingConfigurationProperties;
 import com.shawjie.mods.ticker.PriorityFabricTicker;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.projectile.FishingBobberEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.util.Hand;
-import net.minecraft.util.Pair;
+import net.minecraft.client.Minecraft;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.projectile.FishingHook;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.InteractionHand;
 
 import java.util.Optional;
 import java.util.Random;
@@ -29,12 +28,12 @@ public class PullUpAndReleaseThenAction implements FishCatchingEvent, CallbackAc
     private final Random DELAY_TICK_RANDOM = new Random();
 
     @Override
-    public void whenFishCatching(PlayerEntity player, FishingBobberEntity fishingBobberEntity) {
+    public void whenFishCatching(Player player, FishingHook fishingBobberEntity) {
         // Find which hand is holding the fishing rod
         Optional<ItemStackWithHand> handThatHoldRod =
             Stream.of(
-                new ItemStackWithHand(player.getMainHandStack(), Hand.MAIN_HAND),
-                new ItemStackWithHand(player.getOffHandStack(), Hand.OFF_HAND)
+                new ItemStackWithHand(player.getMainHandItem(), InteractionHand.MAIN_HAND),
+                new ItemStackWithHand(player.getOffhandItem(), InteractionHand.OFF_HAND)
             )
             .filter(stackHand -> holdingFishingRod(stackHand.itemStack()))
             .findFirst();
@@ -43,30 +42,30 @@ public class PullUpAndReleaseThenAction implements FishCatchingEvent, CallbackAc
             return;
         }
 
-        final Hand optHand = handThatHoldRod.get().operateHand();
+        final InteractionHand optHand = handThatHoldRod.get().operateHand();
         // Schedule the pull-up action with initial delay
         PriorityFabricTicker.scheduleTask(() -> {
-            ItemStack stackInHand = player.getStackInHand(optHand);
-            MinecraftClient catchClient = PriorityFabricTicker.getClient();
+            ItemStack stackInHand = player.getItemInHand(optHand);
+            Minecraft catchClient = PriorityFabricTicker.getClient();
 
-            if (holdingFishingRod(stackInHand) && catchClient.interactionManager != null) {
+            if (holdingFishingRod(stackInHand) && catchClient.gameMode != null) {
                 // Pull up the fishing line
-                catchClient.interactionManager.interactItem(player, optHand);
+                catchClient.gameMode.useItem(player, optHand);
 
 
                 if (getConfigStopBeforeRodBreak()) {
                     ItemStack fishingRodItem = handThatHoldRod.get().itemStack();
-                    if (fishingRodItem.getMaxDamage() - fishingRodItem.getDamage() <= SAVE_ROD_THRESHOLD) {
+                    if (fishingRodItem.getMaxDamage() - fishingRodItem.getDamageValue() <= SAVE_ROD_THRESHOLD) {
                         return;
                     }
                 }
 
                 // Schedule the cast action with randomized delay
                 PriorityFabricTicker.scheduleTask(() -> {
-                    MinecraftClient releaseClient = PriorityFabricTicker.getClient();
-                    if (holdingFishingRod(stackInHand) && releaseClient.interactionManager != null) {
+                    Minecraft releaseClient = PriorityFabricTicker.getClient();
+                    if (holdingFishingRod(stackInHand) && releaseClient.gameMode != null) {
                         // Cast a new fishing line
-                        releaseClient.interactionManager.interactItem(player, optHand);
+                        releaseClient.gameMode.useItem(player, optHand);
                     }
                 }, getConfigReleaseTick());
             }
@@ -99,5 +98,5 @@ public class PullUpAndReleaseThenAction implements FishCatchingEvent, CallbackAc
             .orElse(Boolean.FALSE);
     }
 
-    private record ItemStackWithHand(ItemStack itemStack, Hand operateHand){}
+    private record ItemStackWithHand(ItemStack itemStack, InteractionHand operateHand){}
 }

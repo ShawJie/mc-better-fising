@@ -1,7 +1,7 @@
 package com.shawjie.mods.ticker;
 
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
-import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.Minecraft;
 
 import java.util.LinkedList;
 import java.util.ListIterator;
@@ -15,7 +15,7 @@ import java.util.ListIterator;
 public class PriorityFabricTicker implements ClientTickEvents.StartTick {
 
     private static final LinkedList<DelayedTask> tasks = new LinkedList<>();
-    private static final ThreadLocal<MinecraftClient> rollingClient = new ThreadLocal<>();
+    private static final ThreadLocal<Minecraft> rollingClient = new ThreadLocal<>();
 
     private static boolean inRolling;
     private static final LinkedList<DelayedTask> rollingTemporaryTask = new LinkedList<>();
@@ -36,7 +36,7 @@ public class PriorityFabricTicker implements ClientTickEvents.StartTick {
      * 
      * @return the current client instance, or null if called outside tick context
      */
-    public static MinecraftClient getClient() {
+    public static Minecraft getClient() {
         return rollingClient.get();
     }
 

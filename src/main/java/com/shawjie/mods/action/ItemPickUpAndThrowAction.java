@@ -10,9 +10,9 @@ import com.shawjie.mods.property.BetterFishingConfigurationProperties;
 import com.shawjie.mods.ticker.PriorityFabricTicker;
 import net.fabricmc.fabric.mixin.loot.LootPoolAccessor;
 import net.fabricmc.fabric.mixin.loot.LootTableAccessor;
-import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.entity.projectile.FishingBobberEntity;
+import net.minecraft.world.entity.projectile.FishingHook;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.loot.LootPool;
@@ -39,7 +39,7 @@ public class ItemPickUpAndThrowAction implements FishCatchingEvent, PlayerPickup
     private final AtomicReference<Set<String>> fishingItemsRef = new AtomicReference<>();
 
     @Override
-    public void whenFishCatching(PlayerEntity player, FishingBobberEntity fishingBobberEntity) {
+    public void whenFishCatching(Player player, FishingHook fishingBobberEntity) {
         if (!(player instanceof ServerPlayerEntity)) {
             return;
         }
