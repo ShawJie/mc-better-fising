@@ -1,11 +1,10 @@
 package com.shawjie.mods;
 
-import com.google.gson.JsonParser;
 import com.shawjie.mods.action.ItemPickUpAndThrowAction;
+import com.shawjie.mods.action.PullUpAndReleaseThenAction;
 import com.shawjie.mods.infrastructure.ActionProcessRegister;
 import com.shawjie.mods.infrastructure.ConfigurationLoader;
 import com.shawjie.mods.infrastructure.EnableAction;
-import com.shawjie.mods.action.PullUpAndReleaseThenAction;
 import com.shawjie.mods.ticker.PriorityFabricTicker;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
@@ -37,9 +36,7 @@ public class BetterFishing implements ModInitializer {
 		LOGGER.info("Ready to registry `{}` for your game", MOD_ID);
 		ConfigurationLoader configurationLoader = ConfigurationLoader.getInstance();
 		configurationLoader.doLoader();
-
 		ActionProcessRegister actionProcessRegister = new ActionProcessRegister(BetterFishing.class);
-
 		Event<ClientTickEvents.StartTick> startClientTick = ClientTickEvents.START_CLIENT_TICK;
 		startClientTick.register(new PriorityFabricTicker());
 

@@ -2,8 +2,8 @@ package com.shawjie.mods.event;
 
 import net.fabricmc.fabric.api.event.Event;
 import net.fabricmc.fabric.api.event.EventFactory;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.projectile.FishingBobberEntity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.projectile.FishingHook;
 
 /**
  * Callback interface for handling fish catching events.
@@ -13,9 +13,9 @@ public interface FishCatchingEvent {
 
     Event<FishCatchingEvent> EVENT = EventFactory.createArrayBacked(
         FishCatchingEvent.class, (callbackActions) ->
-            ((player, fishingBobberEntity) -> {
+            ((player, fishingHook) -> {
             for (FishCatchingEvent action : callbackActions) {
-                action.whenFishCatching(player, fishingBobberEntity);
+                action.whenFishCatching(player, fishingHook);
             }
         })
     );
@@ -27,7 +27,7 @@ public interface FishCatchingEvent {
      * @param fishingBobberEntity the fishing bobber entity that caught the fish
      */
     void whenFishCatching(
-        PlayerEntity player,
-        FishingBobberEntity fishingBobberEntity
+        Player player,
+        FishingHook fishingBobberEntity
     );
 }
