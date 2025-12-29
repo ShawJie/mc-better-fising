@@ -13,9 +13,9 @@ public interface FishCatchingEvent {
 
     Event<FishCatchingEvent> EVENT = EventFactory.createArrayBacked(
         FishCatchingEvent.class, (callbackActions) ->
-            ((player, fishingBobberEntity) -> {
+            ((player, fishingHook) -> {
             for (FishCatchingEvent action : callbackActions) {
-                action.whenFishCatching(player, fishingBobberEntity);
+                action.whenFishCatching(player, fishingHook);
             }
         })
     );

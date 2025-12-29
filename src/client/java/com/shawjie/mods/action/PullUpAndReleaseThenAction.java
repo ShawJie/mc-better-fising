@@ -28,7 +28,7 @@ public class PullUpAndReleaseThenAction implements FishCatchingEvent, CallbackAc
     private final Random DELAY_TICK_RANDOM = new Random();
 
     @Override
-    public void whenFishCatching(Player player, FishingHook fishingBobberEntity) {
+    public void whenFishCatching(Player player, FishingHook fishingHook) {
         // Find which hand is holding the fishing rod
         Optional<ItemStackWithHand> handThatHoldRod =
             Stream.of(

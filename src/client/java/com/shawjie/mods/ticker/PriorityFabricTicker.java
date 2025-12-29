@@ -41,7 +41,7 @@ public class PriorityFabricTicker implements ClientTickEvents.StartTick {
     }
 
     @Override
-    public void onStartTick(MinecraftClient client) {
+    public void onStartTick(Minecraft client) {
         if (tasks.isEmpty()) {
             return;
         }

@@ -5,27 +5,27 @@ import com.shawjie.mods.event.FishCatchingEvent;
 import com.shawjie.mods.event.PlayerPickupItemEvent;
 import com.shawjie.mods.infrastructure.ConfigurationLoader;
 import com.shawjie.mods.infrastructure.Ordered;
-import com.shawjie.mods.mixin.LootTableEntryAccessor;
+import com.shawjie.mods.mixin.NestedLootTableAccessor;
 import com.shawjie.mods.property.BetterFishingConfigurationProperties;
 import com.shawjie.mods.ticker.PriorityFabricTicker;
 import net.fabricmc.fabric.mixin.loot.LootPoolAccessor;
 import net.fabricmc.fabric.mixin.loot.LootTableAccessor;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.world.entity.projectile.FishingHook;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.loot.LootPool;
-import net.minecraft.loot.LootTable;
-import net.minecraft.loot.LootTables;
-import net.minecraft.loot.entry.ItemEntry;
-import net.minecraft.loot.entry.LootPoolEntry;
-import net.minecraft.loot.entry.LootPoolEntryTypes;
-import net.minecraft.registry.ReloadableRegistries;
-import net.minecraft.registry.entry.RegistryEntry;
+import net.minecraft.core.Holder;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.world.World;
+import net.minecraft.server.ReloadableServerRegistries;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.projectile.FishingHook;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.storage.loot.BuiltInLootTables;
+import net.minecraft.world.level.storage.loot.LootPool;
+import net.minecraft.world.level.storage.loot.LootTable;
+import net.minecraft.world.level.storage.loot.entries.LootItem;
+import net.minecraft.world.level.storage.loot.entries.LootPoolEntries;
+import net.minecraft.world.level.storage.loot.entries.LootPoolEntryContainer;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -39,46 +39,46 @@ public class ItemPickUpAndThrowAction implements FishCatchingEvent, PlayerPickup
     private final AtomicReference<Set<String>> fishingItemsRef = new AtomicReference<>();
 
     @Override
-    public void whenFishCatching(Player player, FishingHook fishingBobberEntity) {
-        if (!(player instanceof ServerPlayerEntity)) {
+    public void whenFishCatching(Player player, FishingHook fishingHook) {
+        if (!(player instanceof ServerPlayer)) {
             return;
         }
-        ReloadableRegistries.Lookup registrieyLookup = Optional.ofNullable(fishingBobberEntity.getEntityWorld())
-            .map(World::getServer)
-            .map(MinecraftServer::getReloadableRegistries)
+        ReloadableServerRegistries.Holder registryHolder = Optional.of(fishingHook.level())
+            .map(Level::getServer)
+            .map(MinecraftServer::reloadableRegistries)
             .orElse(null);
-        if (registrieyLookup == null) {
+        if (registryHolder == null) {
             return;
         }
 
-        LootTable lootTable = Optional.ofNullable(registrieyLookup.getLootTable(LootTables.FISHING_GAMEPLAY)).orElse(LootTable.EMPTY);
-        Set<String> lootItemSet = getItemsFromLootTable(lootTable, registrieyLookup);
+        LootTable lootTable = Optional.of(registryHolder.getLootTable(BuiltInLootTables.FISHING)).orElse(LootTable.EMPTY);
+        Set<String> lootItemSet = getItemsFromLootTable(lootTable, registryHolder);
 
         incrementFishingCountRecord();
         fishingItemsRef.set(lootItemSet);
     }
 
     @Override
-    public void interact(PlayerInventory playerPickingUpItems, int slot, ItemStack entityBeingPickedUp) {
-        PlayerEntity player = playerPickingUpItems.player;
-        if (!(player instanceof ServerPlayerEntity)) {
+    public void interact(Inventory playerPickingUpItems, int slot, ItemStack entityBeingPickedUp) {
+        Player player = playerPickingUpItems.player;
+        if (!(player instanceof ServerPlayer)) {
             return;
         }
 
-        UUID uuid = player.getUuid();
+        UUID uuid = player.getUUID();
         BetterFishing.LOGGER.info("Player {} picked item: {}", uuid, entityBeingPickedUp);
-        RegistryEntry<Item> registryEntry = entityBeingPickedUp.getRegistryEntry();
+        Holder<Item> registryEntry = entityBeingPickedUp.getItemHolder();
 
-        String itemId = registryEntry.getIdAsString();
+        String itemId = registryEntry.getRegisteredName();
         boolean itemInLootList = Optional.ofNullable(fishingItemsRef.get()).orElseGet(Collections::emptySet).contains(itemId);
         boolean itemInBlock = blockItemsFromConfig().contains(itemId);
         if (!itemInLootList || !reduceFishingCountRecord() || !itemInBlock) {
             return;
         }
 
-        ItemStack removeStack = playerPickingUpItems.removeStack(slot, entityBeingPickedUp.getCount());
+        ItemStack removeStack = playerPickingUpItems.removeItem(slot, entityBeingPickedUp.getCount());
         if (removeStack != ItemStack.EMPTY) {
-            player.dropItem(removeStack, true, true);
+            player.drop(removeStack, true, true);
         }
     }
 
@@ -98,27 +98,27 @@ public class ItemPickUpAndThrowAction implements FishCatchingEvent, PlayerPickup
             .orElse(Collections.emptySet());
     }
 
-    @SuppressWarnings("UnstableApiUsage")
-    private Set<String> getItemsFromLootTable(LootTable lootTable, ReloadableRegistries.Lookup registrieyLookup) {
+    private Set<String> getItemsFromLootTable(LootTable lootTable, ReloadableServerRegistries.Holder registryHolder) {
         Set<String> lootItems = new HashSet<>();
 
         List<LootPool> pools = ((LootTableAccessor) lootTable).fabric_getPools();
         for (LootPool pool : pools) {
             LootPoolAccessor poolAccessor = (LootPoolAccessor) pool;
-            List<LootPoolEntry> lootPoolEntries = poolAccessor.fabric_getEntries();
-            for (LootPoolEntry next : lootPoolEntries) {
-                if (next.getType() == LootPoolEntryTypes.LOOT_TABLE) {
-                    LootTableEntryAccessor lootTableEntry = (LootTableEntryAccessor) next;
+            List<LootPoolEntryContainer> lootPoolEntries = poolAccessor.fabric_getEntries();
+            for (LootPoolEntryContainer container : lootPoolEntries) {
+                if (container.getType() == LootPoolEntries.LOOT_TABLE) {
+                    NestedLootTableAccessor lootTableEntry = (NestedLootTableAccessor) container;
                     lootItems.addAll(
                         getItemsFromLootTable(
-                            lootTableEntry.getValue().map(registrieyLookup::getLootTable, Function.identity()),
-                            registrieyLookup
+                            lootTableEntry.getContents().map(registryHolder::getLootTable, Function.identity()),
+                            registryHolder
                         )
                     );
-                } else if (next.getType() == LootPoolEntryTypes.ITEM) {
-                    ItemEntry itemEntry = (ItemEntry) next;
-                    itemEntry.generateLoot((itemStack) ->
-                        lootItems.add(itemStack.getRegistryEntry().getIdAsString()), null
+                }
+                if (container.getType() == LootPoolEntries.ITEM) {
+                    LootItem itemEntry = (LootItem) container;
+                    itemEntry.createItemStack((itemStack) ->
+                        lootItems.add(itemStack.getItemHolder().getRegisteredName()), null
                     );
                 }
             }

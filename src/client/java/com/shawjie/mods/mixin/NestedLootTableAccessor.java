@@ -8,8 +8,8 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.gen.Accessor;
 
 @Mixin(NestedLootTable.class)
-public interface LootTableEntryAccessor {
+public interface NestedLootTableAccessor {
 
-    @Accessor("value")
-    Either<ResourceKey<LootTable>, LootTable> getValue();
+    @Accessor("contents")
+    Either<ResourceKey<LootTable>, LootTable> getContents();
 }

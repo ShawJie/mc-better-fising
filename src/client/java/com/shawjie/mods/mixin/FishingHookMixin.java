@@ -24,14 +24,14 @@ import java.util.Set;
  * @author shawjie
  */
 @Mixin(FishingHook.class)
-public class FishingBobberEntityMixin {
+public class FishingHookMixin {
 
 	private static final Integer CLEAR_DEPRECATED_TICK = 3;
 
 	private static final Set<Integer> PROCESSED_EVENT_CACHE = new HashSet<>();
 
 	@Shadow
-	private boolean caughtFish;
+	private boolean biting;
 
 	/**
 	 * Injected method that triggers when fishing bobber tracked data changes.
@@ -43,7 +43,7 @@ public class FishingBobberEntityMixin {
 	)
 	private void afterTrackedDataSet(EntityDataAccessor<?> data, CallbackInfo info) {
 		FishingHook bobberEntity = ((FishingHook)((Object)this));
-		if (bobberEntity == null || !this.caughtFish) {
+		if (bobberEntity == null || !this.biting) {
 			return;
 		}
 

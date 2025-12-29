@@ -8,9 +8,9 @@ import net.minecraft.world.item.ItemStack;
 public interface PlayerPickupItemEvent {
 
     Event<PlayerPickupItemEvent> EVENT = EventFactory.createArrayBacked(PlayerPickupItemEvent.class,
-            (listeners) -> (player, entity, amount) -> {
+            (listeners) -> (playerInventory, entity, amount) -> {
                 for (PlayerPickupItemEvent event : listeners) {
-                    event.interact(player, entity, amount);
+                    event.interact(playerInventory, entity, amount);
                 }
             }
     );
