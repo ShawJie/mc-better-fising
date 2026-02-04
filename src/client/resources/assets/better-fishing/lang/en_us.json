@@ -1,0 +1,24 @@
+{
+  "better-fishing.config.title": "Better Fishing Configuration",
+  "better-fishing.config.auto_fishing_enable": "Enable Auto Fishing",
+  "better-fishing.config.stop_before_rod_break": "Protect Fishing Rod",
+  "better-fishing.config.block_junks": "Filter Junk Items",
+  "better-fishing.config.pull_up_label": "Pull Up Delay",
+  "better-fishing.config.pull_up_tick_desc": "Ticks before pull (1 tick = 1/20s)",
+  "better-fishing.config.release_label": "Release Delay",
+  "better-fishing.config.release_tick_desc": "Ticks before recast",
+  "better-fishing.config.block_list_label": "Block Items List",
+  "better-fishing.config.block_list_desc": "Items to drop (e.g. minecraft:cod)",
+  "better-fishing.config.save": "Save Configuration",
+
+  "better-fishing.config.group.basic": "Basic Settings",
+  "better-fishing.config.group.timing": "Timing Settings",
+  "better-fishing.config.group.filter": "Item Filter",
+
+  "better-fishing.config.tooltip.auto_fishing": "Automatically detect fish bites and pull up the rod",
+  "better-fishing.config.tooltip.rod_protection": "Stop fishing when rod durability is below 10",
+  "better-fishing.config.tooltip.block_junks": "Automatically filter and discard unwanted fishing items",
+  "better-fishing.config.tooltip.pull_up": "Delay in ticks before pulling up after detecting a bite\nRecommended: 5-10 ticks\n1 tick = 1/20 second = 0.05 seconds",
+  "better-fishing.config.tooltip.release": "Delay in ticks before recasting after pulling up\nRecommended: 10-50 ticks\nToo short may cause casting to fail",
+  "better-fishing.config.tooltip.block_list": "Enter item IDs to automatically discard\nFormat: minecraft:cod, minecraft:salmon\nSeparate multiple items with commas"
+}

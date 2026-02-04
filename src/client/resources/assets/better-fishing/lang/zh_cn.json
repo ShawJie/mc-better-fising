@@ -3,11 +3,22 @@
   "better-fishing.config.auto_fishing_enable": "启用自动钓鱼",
   "better-fishing.config.stop_before_rod_break": "保护鱼竿",
   "better-fishing.config.block_junks": "过滤垃圾物品",
-  "better-fishing.config.pull_up_label": "拉竿:",
+  "better-fishing.config.pull_up_label": "拉竿延迟",
   "better-fishing.config.pull_up_tick_desc": "拉竿前延迟 (1刻 = 1/20秒)",
-  "better-fishing.config.release_label": "抛竿:",
+  "better-fishing.config.release_label": "抛竿延迟",
   "better-fishing.config.release_tick_desc": "重新抛竿前延迟",
-  "better-fishing.config.block_list_label": "阻止物品:",
+  "better-fishing.config.block_list_label": "阻止物品列表",
   "better-fishing.config.block_list_desc": "自动丢弃物品 (例如: minecraft:cod)",
-  "better-fishing.config.save": "保存配置"
+  "better-fishing.config.save": "保存配置",
+
+  "better-fishing.config.group.basic": "基础功能",
+  "better-fishing.config.group.timing": "时间设置",
+  "better-fishing.config.group.filter": "物品过滤",
+
+  "better-fishing.config.tooltip.auto_fishing": "启用后将自动检测鱼咬钩并拉竿",
+  "better-fishing.config.tooltip.rod_protection": "当鱼竿耐久度低于10时自动停止钓鱼",
+  "better-fishing.config.tooltip.block_junks": "自动过滤并丢弃不需要的钓鱼物品",
+  "better-fishing.config.tooltip.pull_up": "检测到鱼咬钩后延迟多少刻再拉竿\n建议值: 5-10 ticks\n1 tick = 1/20 秒 = 0.05 秒",
+  "better-fishing.config.tooltip.release": "拉竿后延迟多少刻再重新抛竿\n建议值: 10-50 ticks\n过短可能导致抛竿失败",
+  "better-fishing.config.tooltip.block_list": "输入要自动丢弃的物品ID\n格式: minecraft:cod, minecraft:salmon\n使用逗号分隔多个物品"
 }

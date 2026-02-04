@@ -2,298 +2,185 @@ package com.shawjie.mods.config;
 
 import com.shawjie.mods.infrastructure.ConfigurationLoader;
 import com.shawjie.mods.property.BetterFishingConfigurationProperties;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.OptionInstance;
+import net.minecraft.client.gui.components.*;
+import net.minecraft.client.gui.layouts.HeaderAndFooterLayout;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.gui.components.Button;
-import net.minecraft.client.gui.components.Checkbox;
-import net.minecraft.client.gui.components.EditBox;
+import net.minecraft.client.gui.screens.options.OptionsSubScreen;
+import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Configuration screen for Better Fishing mod in ModMenu
+ * Modernized with card-based layout and enhanced user experience
+ * Extends OptionsSubScreen for built-in scrolling support
  */
-public class BetterFishingConfigScreen extends Screen {
-    
-    private final Screen parent;
-    private final ConfigurationLoader configLoader;
-    
-    // UI Components
-    private Checkbox autoFishingToggle;
-    private Checkbox stopBeforeRodBreakToggle;
-    private Checkbox blockJunksToggle;
-    private EditBox pullUpTickField;
-    private EditBox releaseTickField;
-    private EditBox blockListField;
-    
-    // Temporary values for editing
-    private boolean tempAutoFishingEnable;
-    private boolean tempStopBeforeRodBreak;
-    private boolean tempBlockJunks;
-    private int tempPullUpTick;
-    private int tempReleaseTick;
-    private String tempBlockListText;
+public class BetterFishingConfigScreen extends OptionsSubScreen {
 
-    public BetterFishingConfigScreen(Screen parent, BetterFishingConfigurationProperties config, ConfigurationLoader configLoader) {
-        super(Component.translatable("better-fishing.config.title"));
-        this.parent = parent;
-        this.configLoader = configLoader;
+    private final ConfigurationLoader baseLoader;
+    private BetterFishingConfigurationProperties tmpProp;
+
+    public BetterFishingConfigScreen(Screen parent, BetterFishingConfigurationProperties base, ConfigurationLoader baseLoader) {
+        super(parent, Minecraft.getInstance().options, Component.translatable("better-fishing.config.title"));
+        this.baseLoader = baseLoader;
 
         // Initialize temporary values
-        this.tempAutoFishingEnable = config.getAutoFishingEnable() != null ? config.getAutoFishingEnable() : true;
-        this.tempStopBeforeRodBreak = config.getStopBeforeRodBreak() != null ? config.getStopBeforeRodBreak() : false;
-        this.tempBlockJunks = config.getBlockJunks() != null ? config.getBlockJunks() : false;
-        this.tempPullUpTick = config.getPullUpTick() != null ? config.getPullUpTick() : 5;
-        this.tempReleaseTick = config.getReleaseTick() != null ? config.getReleaseTick() : 10;
-        this.tempBlockListText = config.getBlockListItems() != null ?
-            String.join(", ", config.getBlockListItems()) : "";
+        tmpProp = generateTempProperties(base);
     }
 
     @Override
-    protected void init() {
-        super.init();
+    protected void addOptions() {
+        if (this.list == null) {
+            return;
+        }
 
-        // Responsive layout calculations
-        int minWidth = 320; // Minimum supported width
-        int actualWidth = Math.max(this.width, minWidth);
-        int centerX = actualWidth / 2;
+        HeaderAndFooterLayout displayLayout = this.layout;
+        this.list.addHeader(Component.translatable("better-fishing.config.group.basic"));
+        this.list.addSmall(createBasicSettingsOptions());
 
-        // Dynamic spacing based on screen height
-        int minHeight = 240; // Minimum supported height
-        int actualHeight = Math.max(this.height, minHeight);
-        int availableHeight = actualHeight - 80; // Reserve space for title and buttons
-        int maxContentHeight = 150; // Maximum content area height
-        int contentHeight = Math.min(availableHeight, maxContentHeight);
+        this.list.addHeader(Component.translatable("better-fishing.config.group.timing"));
+        createTimingSettingsPanel(displayLayout.getX(), displayLayout.getY(), displayLayout.getWidth())
+            .forEach(this.list::addBig);
 
-        // Calculate spacing to fit all elements
-        int elementCount = 7; // 3 toggles + 3 input fields + 1 spacing
-        int spacing = Math.max(18, Math.min(25, contentHeight / elementCount));
+        this.list.addHeader(Component.translatable("better-fishing.config.group.filter"));
+        layout.addToContents()
+    }
 
-        int startY = 35;
-        int labelWidth = Math.min(80, actualWidth / 4);
-        int fieldWidth = Math.min(80, actualWidth / 5);
-
-        // Ensure elements don't go off-screen
-        int maxElementWidth = actualWidth - 40; // 20px margin on each side
-        int toggleWidth = Math.min(160, maxElementWidth);
-
-        int currentY = startY;
-
+    /**
+     * Creates the basic settings card panel
+     */
+    private List<AbstractWidget> createBasicSettingsOptions() {
         // Auto Fishing Toggle
-        this.autoFishingToggle = Checkbox.builder(
+        Checkbox autoFishingToggle = Checkbox.builder(
                 Component.translatable("better-fishing.config.auto_fishing_enable"),
                 this.getFont()
             )
-            .pos(centerX - toggleWidth / 2, currentY)
-            .selected(tempAutoFishingEnable)
-            .onValueChange((checkbox, checked) -> tempAutoFishingEnable = checked)
+            .selected(tmpProp.getAutoFishingEnable())
+            .onValueChange((checkbox, checked) -> tmpProp.setAutoFishingEnable(checked))
+            .tooltip(Tooltip.create(Component.translatable("better-fishing.config.tooltip.auto_fishing")))
             .build();
-        this.addRenderableWidget(autoFishingToggle);
-        currentY += spacing;
 
         // Stop Before Rod Break Toggle
-        this.stopBeforeRodBreakToggle = Checkbox.builder(
+        Checkbox stopBeforeRodBreakToggle = Checkbox.builder(
                 Component.translatable("better-fishing.config.stop_before_rod_break"),
                 this.getFont()
             )
-            .pos(centerX - toggleWidth / 2, currentY)
-            .selected(tempStopBeforeRodBreak)
-            .onValueChange((checkbox, checked) -> tempStopBeforeRodBreak = checked)
+            .selected(tmpProp.getStopBeforeRodBreak())
+            .onValueChange((checkbox, checked) -> tmpProp.setStopBeforeRodBreak(checked))
+            .tooltip(Tooltip.create(Component.translatable("better-fishing.config.tooltip.rod_protection")))
             .build();
-        this.addRenderableWidget(stopBeforeRodBreakToggle);
-        currentY += spacing;
 
         // Block Junks Toggle
-        this.blockJunksToggle = Checkbox.builder(
+        Checkbox blockJunksToggle = Checkbox.builder(
                 Component.translatable("better-fishing.config.block_junks"),
                 this.getFont()
             )
-            .pos(centerX - toggleWidth / 2, currentY)
-            .selected(tempBlockJunks)
-            .onValueChange((checkbox, checked) -> tempBlockJunks = checked)
+            .selected(tmpProp.getBlockJunks())
+            .onValueChange((checkbox, checked) -> tmpProp.setBlockJunks(checked))
+            .tooltip(Tooltip.create(Component.translatable("better-fishing.config.tooltip.block_junks")))
             .build();
-        this.addRenderableWidget(blockJunksToggle);
-        currentY += spacing;
 
-        // Pull Up Tick Field
-        int labelX = Math.max(20, centerX - labelWidth - 5);
-        int fieldX = Math.min(actualWidth - fieldWidth - 20, centerX + 5);
-
-        this.addRenderableWidget(Button.builder(
-            Component.translatable("better-fishing.config.pull_up_label"),
-            button -> {}
-        ).bounds(labelX, currentY, labelWidth, 20).build());
-
-        this.pullUpTickField = new EditBox(
-            this.getFont(),
-            fieldX, currentY, fieldWidth, 20,
-            Component.translatable("better-fishing.config.pull_up_tick")
-        );
-        this.pullUpTickField.setValue(String.valueOf(tempPullUpTick));
-        this.pullUpTickField.setResponder(text -> {
-            try {
-                tempPullUpTick = Integer.parseInt(text);
-            } catch (NumberFormatException e) {
-                // Keep previous value if invalid
-            }
-        });
-        this.addRenderableWidget(pullUpTickField);
-        currentY += spacing;
-
-        // Release Tick Field
-        this.addRenderableWidget(Button.builder(
-            Component.translatable("better-fishing.config.release_label"),
-            button -> {}
-        ).bounds(labelX, currentY, labelWidth, 20).build());
-
-        this.releaseTickField = new EditBox(
-            this.getFont(),
-            fieldX, currentY, fieldWidth, 20,
-            Component.translatable("better-fishing.config.release_tick")
-        );
-        this.releaseTickField.setValue(String.valueOf(tempReleaseTick));
-        this.releaseTickField.setResponder(text -> {
-            try {
-                tempReleaseTick = Integer.parseInt(text);
-            } catch (NumberFormatException e) {
-                // Keep previous value if invalid
-            }
-        });
-        this.addRenderableWidget(releaseTickField);
-        currentY += spacing;
-
-        // Block List Field (wider field for better usability)
-        int blockListFieldWidth = Math.min(150, actualWidth - labelWidth - 40);
-        int blockListFieldX = Math.min(actualWidth - blockListFieldWidth - 20, centerX + 5);
-
-        this.addRenderableWidget(Button.builder(
-            Component.translatable("better-fishing.config.block_list_label"),
-            button -> {}
-        ).bounds(labelX, currentY, labelWidth, 20).build());
-
-        this.blockListField = new EditBox(
-            this.getFont(),
-            blockListFieldX, currentY, blockListFieldWidth, 20,
-            Component.translatable("better-fishing.config.block_list")
-        );
-        this.blockListField.setValue(tempBlockListText);
-        this.blockListField.setResponder(text -> tempBlockListText = text);
-        this.blockListField.setMaxLength(256);
-        this.addRenderableWidget(blockListField);
-        currentY += spacing + 10;
-
-        // Calculate button positions to ensure they're always visible
-        int buttonY = Math.max(currentY, actualHeight - 40);
-        int buttonWidth = Math.min(100, (actualWidth - 30) / 2); // Ensure buttons fit side by side
-
-        // Save and Cancel buttons side by side
-        this.addRenderableWidget(Button.builder(
-            Component.translatable("better-fishing.config.save"),
-            this::saveConfig
-        ).bounds(centerX - buttonWidth - 5, buttonY, buttonWidth, 20).build());
-
-        this.addRenderableWidget(Button.builder(
-            Component.translatable("gui.cancel"),
-            button -> this.onClose()
-        ).bounds(centerX + 5, buttonY, buttonWidth, 20).build());
+        return Arrays.asList(autoFishingToggle, stopBeforeRodBreakToggle, blockJunksToggle);
     }
 
-    private void saveConfig(Button button) {
-        BetterFishingConfigurationProperties newProperties = new BetterFishingConfigurationProperties();
-        // Update configuration with new values
-        newProperties.setAutoFishingEnable(tempAutoFishingEnable);
-        newProperties.setStopBeforeRodBreak(tempStopBeforeRodBreak);
-        newProperties.setBlockJunks(tempBlockJunks);
-        newProperties.setPullUpTick(Math.max(1, tempPullUpTick)); // Ensure positive value
-        newProperties.setReleaseTick(Math.max(1, tempReleaseTick)); // Ensure positive value
+    /**
+     * Creates the timing settings card panel
+     *
+     * @return
+     */
+    private List<OptionInstance<?>> createTimingSettingsPanel(int x, int y, int width) {
+        // Pull Up Slider
+        OptionInstance<Integer> pullUpSlider = new OptionInstance<>(
+            "better-fishing.config.pull_up_label",
+            (t) -> Tooltip.create(Component.translatable("better-fishing.config.tooltip.pull_up")),
+            (component, integer) -> Component.literal("ticks: " + integer),
+            new OptionInstance.IntRange(5, 20), tmpProp.getPullUpTick(), tmpProp::setPullUpTick
+        );
 
-        // Parse block list
-        Set<String> blockList = new HashSet<>();
-        if (!tempBlockListText.trim().isEmpty()) {
-            String[] items = tempBlockListText.split(",");
+        OptionInstance<Integer> releaseSlider = new OptionInstance<>(
+            "better-fishing.config.release_label",
+            (t) -> Tooltip.create(Component.translatable("better-fishing.config.tooltip.release")),
+            (component, integer) -> Component.literal("ticks: " + integer),
+            new OptionInstance.IntRange(10, 500), tmpProp.getReleaseTick(), tmpProp::setReleaseTick
+        );
+
+        return Arrays.asList(pullUpSlider, releaseSlider);
+    }
+
+    /**
+     * Creates the filter settings card panel
+     */
+    private List<AbstractWidget> createFilterSettingsPanel(int x, int y, int width) {
+        // Block List Field
+        new OptionInstance<String>(
+            "better-fishing.config.block_list_label",
+            (t) -> Tooltip.create(Component.translatable("better-fishing.config.tooltip.block_list")),
+            (c, s) -> Component.literal(s),
+
+        )
+        EditBox blockListField = new EditBox(
+            this.font, x, y, width, 50,
+            Component.translatable()
+        );
+
+        blockListField.setValue(collectionAsString(tmpProp.getBlockListItems()));
+        blockListField.setResponder(text -> tmpProp.setBlockListItems(new HashSet<>(stringAsCollection(text))));
+        blockListField.setMaxLength(256);
+        blockListField.setTooltip(Tooltip.create(Component.translatable("better-fishing.config.tooltip.block_list")));
+        return Collections.singletonList(blockListField);
+    }
+
+    private String collectionAsString(Collection<String> collection) {
+        return String.join(", ", collection);
+    }
+
+    private Collection<String> stringAsCollection(String collections) {
+        List<String> collectionList = new ArrayList<>();
+        if (!collections.trim().isEmpty()) {
+            String[] items = collections.split(",");
             for (String item : items) {
                 String trimmed = item.trim();
                 if (!trimmed.isEmpty()) {
-                    blockList.add(trimmed);
+                    collectionList.add(trimmed);
                 }
             }
         }
-        newProperties.setBlockListItems(blockList);
 
-        // Save configuration
-        configLoader.refreshConfig(newProperties);
-
-        // Close screen
-        this.onClose();
+        return collectionList;
     }
 
     @Override
-    public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float delta) {
-        // Render a simple background without blur to avoid the crash
-        guiGraphics.fill(0, 0, this.width, this.height, 0xC0101010);
-
-        // Draw title
-        guiGraphics.drawCenteredString(
-            this.getFont(),
-            this.title,
-            this.width / 2,
-            20,
-            0xFFFFFF
+    protected void addFooter() {
+        this.layout.addToFooter(
+            Button.builder(Component.translatable("better-fishing.config.save"), button -> {
+                baseLoader.refreshConfig(tmpProp);
+                this.onClose();
+            }).width(150).build()
         );
 
-        // Only draw descriptions if there's enough space
-        if (this.height > 200) {
-            // Calculate responsive description positions
-            int minWidth = 320;
-            int actualWidth = Math.max(this.width, minWidth);
-            int availableHeight = Math.max(this.height, 240) - 80;
-            int maxContentHeight = 150;
-            int contentHeight = Math.min(availableHeight, maxContentHeight);
-            int elementCount = 6;
-            int spacing = Math.max(18, Math.min(25, contentHeight / elementCount));
-
-            // Start descriptions after the toggles (2 * spacing + startY)
-            int descStartY = 35 + spacing * 2 + 5;
-            int descX = Math.max(20, this.width / 2 - Math.min(120, actualWidth / 3));
-
-            // Only show descriptions if they won't overlap with buttons
-            int maxDescY = descStartY + spacing * 3;
-            if (maxDescY < this.height - 60) {
-                guiGraphics.drawString(
-                    this.getFont(),
-                    Component.translatable("better-fishing.config.pull_up_tick_desc"),
-                    descX,
-                    descStartY,
-                    0xAAAAAA
-                );
-
-                guiGraphics.drawString(
-                    this.getFont(),
-                    Component.translatable("better-fishing.config.release_tick_desc"),
-                    descX,
-                    descStartY + spacing,
-                    0xAAAAAA
-                );
-
-                guiGraphics.drawString(
-                    this.getFont(),
-                    Component.translatable("better-fishing.config.block_list_desc"),
-                    descX,
-                    descStartY + spacing * 2,
-                    0xAAAAAA
-                );
-            }
-        }
-
-        super.render(guiGraphics, mouseX, mouseY, delta);
+        this.layout.addToFooter(
+            Button.builder(CommonComponents.GUI_CANCEL, button -> this.onClose()).width(200).build()
+        );
     }
 
     @Override
-    public void onClose() {
-        if (this.minecraft != null) {
-            this.minecraft.setScreen(this.parent);
-        }
+    public void removed() {
+
+    }
+
+    private BetterFishingConfigurationProperties generateTempProperties(BetterFishingConfigurationProperties base) {
+        BetterFishingConfigurationProperties defaultProperties = new BetterFishingConfigurationProperties();
+        // Initialize temporary values
+        defaultProperties.setAutoFishingEnable(base.getAutoFishingEnable() != null ? base.getAutoFishingEnable() : true);
+        defaultProperties.setStopBeforeRodBreak(base.getStopBeforeRodBreak() != null ? base.getStopBeforeRodBreak() : false);
+        defaultProperties.setBlockJunks(base.getBlockJunks() != null ? base.getBlockJunks() : false);
+
+        defaultProperties.setPullUpTick(base.getPullUpTick() != null ? base.getPullUpTick() : 5);
+        defaultProperties.setReleaseTick(base.getReleaseTick() != null ? base.getReleaseTick() : 10);
+        defaultProperties.setBlockListItems(base.getBlockListItems() != null ? base.getBlockListItems() : Collections.emptySet());
+        return defaultProperties;
     }
 }

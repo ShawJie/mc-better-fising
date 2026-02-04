@@ -2,7 +2,7 @@ package com.shawjie.mods.property;
 
 import java.util.Set;
 
-public class BetterFishingConfigurationProperties {
+public class BetterFishingConfigurationProperties implements Cloneable{
 
     private Boolean autoFishingEnable;
 
