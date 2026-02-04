@@ -2,6 +2,7 @@
   "better-fishing.config.title": "更好的钓鱼 - 配置",
   "better-fishing.config.auto_fishing_enable": "启用自动钓鱼",
   "better-fishing.config.stop_before_rod_break": "保护鱼竿",
+  "better-fishing.config.block_junks": "过滤垃圾物品",
   "better-fishing.config.pull_up_label": "拉竿:",
   "better-fishing.config.pull_up_tick_desc": "拉竿前延迟 (1刻 = 1/20秒)",
   "better-fishing.config.release_label": "抛竿:",

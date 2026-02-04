@@ -23,6 +23,7 @@ public class BetterFishingConfigScreen extends Screen {
     // UI Components
     private Checkbox autoFishingToggle;
     private Checkbox stopBeforeRodBreakToggle;
+    private Checkbox blockJunksToggle;
     private EditBox pullUpTickField;
     private EditBox releaseTickField;
     private EditBox blockListField;
@@ -30,6 +31,7 @@ public class BetterFishingConfigScreen extends Screen {
     // Temporary values for editing
     private boolean tempAutoFishingEnable;
     private boolean tempStopBeforeRodBreak;
+    private boolean tempBlockJunks;
     private int tempPullUpTick;
     private int tempReleaseTick;
     private String tempBlockListText;
@@ -42,6 +44,7 @@ public class BetterFishingConfigScreen extends Screen {
         // Initialize temporary values
         this.tempAutoFishingEnable = config.getAutoFishingEnable() != null ? config.getAutoFishingEnable() : true;
         this.tempStopBeforeRodBreak = config.getStopBeforeRodBreak() != null ? config.getStopBeforeRodBreak() : false;
+        this.tempBlockJunks = config.getBlockJunks() != null ? config.getBlockJunks() : false;
         this.tempPullUpTick = config.getPullUpTick() != null ? config.getPullUpTick() : 5;
         this.tempReleaseTick = config.getReleaseTick() != null ? config.getReleaseTick() : 10;
         this.tempBlockListText = config.getBlockListItems() != null ?
@@ -65,7 +68,7 @@ public class BetterFishingConfigScreen extends Screen {
         int contentHeight = Math.min(availableHeight, maxContentHeight);
 
         // Calculate spacing to fit all elements
-        int elementCount = 6; // 2 toggles + 3 input fields + 1 spacing
+        int elementCount = 7; // 3 toggles + 3 input fields + 1 spacing
         int spacing = Math.max(18, Math.min(25, contentHeight / elementCount));
 
         int startY = 35;
@@ -100,6 +103,18 @@ public class BetterFishingConfigScreen extends Screen {
             .onValueChange((checkbox, checked) -> tempStopBeforeRodBreak = checked)
             .build();
         this.addRenderableWidget(stopBeforeRodBreakToggle);
+        currentY += spacing;
+
+        // Block Junks Toggle
+        this.blockJunksToggle = Checkbox.builder(
+                Component.translatable("better-fishing.config.block_junks"),
+                this.getFont()
+            )
+            .pos(centerX - toggleWidth / 2, currentY)
+            .selected(tempBlockJunks)
+            .onValueChange((checkbox, checked) -> tempBlockJunks = checked)
+            .build();
+        this.addRenderableWidget(blockJunksToggle);
         currentY += spacing;
 
         // Pull Up Tick Field
@@ -190,6 +205,7 @@ public class BetterFishingConfigScreen extends Screen {
         // Update configuration with new values
         newProperties.setAutoFishingEnable(tempAutoFishingEnable);
         newProperties.setStopBeforeRodBreak(tempStopBeforeRodBreak);
+        newProperties.setBlockJunks(tempBlockJunks);
         newProperties.setPullUpTick(Math.max(1, tempPullUpTick)); // Ensure positive value
         newProperties.setReleaseTick(Math.max(1, tempReleaseTick)); // Ensure positive value
 
