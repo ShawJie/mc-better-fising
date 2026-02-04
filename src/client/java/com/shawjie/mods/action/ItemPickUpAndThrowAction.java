@@ -14,6 +14,7 @@ import net.minecraft.core.Holder;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.ReloadableServerRegistries;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.FishingHook;
@@ -51,7 +52,8 @@ public class ItemPickUpAndThrowAction implements FishCatchingEvent, PlayerPickup
             return;
         }
 
-        LootTable lootTable = Optional.of(registryHolder.getLootTable(BuiltInLootTables.FISHING)).orElse(LootTable.EMPTY);
+        LootTable lootTable = Optional.of(registryHolder.getLootTable(BuiltInLootTables.FISHING))
+            .orElse(LootTable.EMPTY);
         Set<String> lootItemSet = getItemsFromLootTable(lootTable, registryHolder);
 
         incrementFishingCountRecord();
@@ -70,9 +72,16 @@ public class ItemPickUpAndThrowAction implements FishCatchingEvent, PlayerPickup
         Holder<Item> registryEntry = entityBeingPickedUp.getItemHolder();
 
         String itemId = registryEntry.getRegisteredName();
-        boolean itemInLootList = Optional.ofNullable(fishingItemsRef.get()).orElseGet(Collections::emptySet).contains(itemId);
-        boolean itemInBlock = blockItemsFromConfig().contains(itemId);
-        if (!itemInLootList || !reduceFishingCountRecord() || !itemInBlock) {
+        Set<String> loots = Optional.ofNullable(fishingItemsRef.get())
+            .orElseGet(Collections::emptySet);
+
+        boolean itemInLootList = loots.contains(itemId);
+        if (!itemInLootList || !reduceFishingCountRecord()) {
+            return;
+        }
+
+        boolean itemInBlock = blockItemsFromConfig(player).contains(itemId);
+        if (!itemInBlock) {
             return;
         }
 
@@ -91,11 +100,29 @@ public class ItemPickUpAndThrowAction implements FishCatchingEvent, PlayerPickup
         return pickUpCandidate.compareAndSet(Boolean.TRUE, Boolean.FALSE);
     }
 
-    private Set<String> blockItemsFromConfig() {
-        return Optional.of(ConfigurationLoader.getInstance())
+    private Set<String> blockItemsFromConfig(Player player) {
+        Set<String> blockItemSet = Optional.of(ConfigurationLoader.getInstance())
             .map(ConfigurationLoader::getConfig)
             .map(BetterFishingConfigurationProperties::getBlockListItems)
-            .orElse(Collections.emptySet());
+            .orElseGet(HashSet::new);
+
+        if (filterJunk()) {
+            Optional.of(player).map(Entity::level)
+                .map(Level::getServer)
+                .map(MinecraftServer::reloadableRegistries)
+                .map(holder -> getItemsFromLootTable(
+                    holder.getLootTable(BuiltInLootTables.FISHING_JUNK), holder
+                ))
+                .ifPresent(blockItemSet::addAll);
+        }
+        return blockItemSet;
+    }
+
+    private Boolean filterJunk() {
+        return Optional.of(ConfigurationLoader.getInstance())
+            .map(ConfigurationLoader::getConfig)
+            .map(BetterFishingConfigurationProperties::getBlockJunks)
+            .orElse(Boolean.FALSE);
     }
 
     private Set<String> getItemsFromLootTable(LootTable lootTable, ReloadableServerRegistries.Holder registryHolder) {
@@ -117,6 +144,7 @@ public class ItemPickUpAndThrowAction implements FishCatchingEvent, PlayerPickup
                 }
                 if (container.getType() == LootPoolEntries.ITEM) {
                     LootItem itemEntry = (LootItem) container;
+
                     itemEntry.createItemStack((itemStack) ->
                         lootItems.add(itemStack.getItemHolder().getRegisteredName()), null
                     );

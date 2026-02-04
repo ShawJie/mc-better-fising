@@ -165,6 +165,7 @@ public class BetterFishingConfigScreen extends Screen {
         );
         this.blockListField.setValue(tempBlockListText);
         this.blockListField.setResponder(text -> tempBlockListText = text);
+        this.blockListField.setMaxLength(256);
         this.addRenderableWidget(blockListField);
         currentY += spacing + 10;
 
