@@ -85,6 +85,7 @@ public class ItemPickUpAndThrowAction implements FishCatchingEvent, PlayerPickup
             return;
         }
 
+        BetterFishing.LOGGER.info("Player {} picked item: {} but in block list then will dropped", uuid, entityBeingPickedUp);
         ItemStack removeStack = playerPickingUpItems.removeItem(slot, entityBeingPickedUp.getCount());
         if (removeStack != ItemStack.EMPTY) {
             player.drop(removeStack, true, true);

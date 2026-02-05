@@ -6,6 +6,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.OptionInstance;
 import net.minecraft.client.gui.components.*;
 import net.minecraft.client.gui.layouts.HeaderAndFooterLayout;
+import net.minecraft.client.gui.layouts.LinearLayout;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.options.OptionsSubScreen;
 import net.minecraft.network.chat.CommonComponents;
@@ -46,7 +47,7 @@ public class BetterFishingConfigScreen extends OptionsSubScreen {
             .forEach(this.list::addBig);
 
         this.list.addHeader(Component.translatable("better-fishing.config.group.filter"));
-        layout.addToContents()
+        this.list.addSmall(createFilterSettingsPanel());
     }
 
     /**
@@ -113,24 +114,31 @@ public class BetterFishingConfigScreen extends OptionsSubScreen {
     /**
      * Creates the filter settings card panel
      */
-    private List<AbstractWidget> createFilterSettingsPanel(int x, int y, int width) {
+    private List<AbstractWidget> createFilterSettingsPanel() {
         // Block List Field
-        new OptionInstance<String>(
-            "better-fishing.config.block_list_label",
-            (t) -> Tooltip.create(Component.translatable("better-fishing.config.tooltip.block_list")),
-            (c, s) -> Component.literal(s),
+        StringWidget stringWidget = new StringWidget(
+            Component.translatable("better-fishing.config.block_list_label").withColor(-4539718),
+            this.font
+        );
 
-        )
         EditBox blockListField = new EditBox(
-            this.font, x, y, width, 50,
-            Component.translatable()
+            this.font, 0, 0,  155, 15,
+            Component.translatable("better-fishing.config.block_list_label")
         );
 
         blockListField.setValue(collectionAsString(tmpProp.getBlockListItems()));
-        blockListField.setResponder(text -> tmpProp.setBlockListItems(new HashSet<>(stringAsCollection(text))));
+        blockListField.setResponder(text -> {
+            Collection<String> strings = stringAsCollection(text);
+            if (strings.isEmpty()) {
+                tmpProp.setBlockListItems(null);
+                return;
+            }
+            tmpProp.setBlockListItems(new HashSet<>(strings));
+        });
         blockListField.setMaxLength(256);
         blockListField.setTooltip(Tooltip.create(Component.translatable("better-fishing.config.tooltip.block_list")));
-        return Collections.singletonList(blockListField);
+
+        return Arrays.asList(stringWidget, blockListField);
     }
 
     private String collectionAsString(Collection<String> collection) {
@@ -154,15 +162,18 @@ public class BetterFishingConfigScreen extends OptionsSubScreen {
 
     @Override
     protected void addFooter() {
-        this.layout.addToFooter(
+        LinearLayout linearLayout = this.layout.addToFooter(LinearLayout.horizontal()).spacing(8);
+        linearLayout.defaultCellSetting().alignHorizontallyCenter();
+
+        linearLayout.addChild(
             Button.builder(Component.translatable("better-fishing.config.save"), button -> {
                 baseLoader.refreshConfig(tmpProp);
                 this.onClose();
-            }).width(150).build()
+            }).build()
         );
 
-        this.layout.addToFooter(
-            Button.builder(CommonComponents.GUI_CANCEL, button -> this.onClose()).width(200).build()
+        linearLayout.addChild(
+            Button.builder(CommonComponents.GUI_CANCEL, button -> this.onClose()).build()
         );
     }
 
